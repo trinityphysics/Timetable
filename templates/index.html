@@ -1038,7 +1038,7 @@ function renderClasses() {
     let ruleNote = "";
     if (specific.length === 0) {
       ruleNote = "Any available teacher will be used.";
-    } else if (specific.length === 1 && n === 1) {
+    } else if (specific.length === 1) {
       ruleNote = "\u26a0 Hard: " + esc(specific[0]) + " must teach this class.";
     } else if (specific.length === n && n > 1 && new Set(specific).size === n) {
       ruleNote = "\u26a0 Hard: one teacher per section (1:1 rule).";

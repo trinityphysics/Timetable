@@ -124,7 +124,8 @@ class Class:
         elif lvl in ("ah", "advanced higher"):
             level_abbrev = "AH"
         else:
-            level_abbrev = self.level[:2].upper() if self.level else "XX"
+            raw = self.level[:2].upper() if self.level else ""
+            level_abbrev = raw if len(raw) == 2 else (raw + "X" if raw else "XX")
         prefix = f"{self.year_group}-{subj_init}-{level_abbrev}-{self.column}"
         return [f"{prefix}-{i}" for i in range(1, self.sections + 1)]
 
