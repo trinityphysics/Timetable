@@ -214,13 +214,21 @@ class Scheduler:
                 if teacher and not teacher.is_available(slot):
                     return False
 
-                # Teacher already teaching another column at this slot
+                # Teacher already teaching another column (or an earlier subject
+                # in this same column) at this slot
                 if subj.teacher in teachers_at_slot:
                     return False
 
-            # Requested room already taken at this slot
-            if subj.room and subj.room in rooms_at_slot:
-                return False
+                # Track this teacher so subsequent subjects in the same column
+                # don't double-book them
+                teachers_at_slot.add(subj.teacher)
+
+            # Requested room already taken at this slot (including earlier
+            # subjects in this same column)
+            if subj.room:
+                if subj.room in rooms_at_slot:
+                    return False
+                rooms_at_slot.add(subj.room)
 
         return True
 
