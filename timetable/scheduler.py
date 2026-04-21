@@ -194,6 +194,10 @@ class Scheduler:
         if col_obj and slot in col_obj.unavailable:
             return False
 
+        # Column has pinned slots — only those exact slots are allowed
+        if col_obj and col_obj.pinned_slots and slot not in col_obj.pinned_slots:
+            return False
+
         subjects = self._col_subjects.get(col_name, [])
 
         # Collect teachers and rooms already committed at this slot
@@ -271,6 +275,13 @@ class Scheduler:
 
         days_used = {d for d, _ in used_by_col}
 
+        # When the column has pinned slots (from a period_map), restrict the
+        # candidate pool to those slots only.  Otherwise use the full week.
+        col_obj = self.column_map.get(col_name)
+        candidate_pool = (
+            col_obj.pinned_slots if (col_obj and col_obj.pinned_slots) else self.all_slots
+        )
+
         def score(slot: Slot) -> int:
             d, p = slot
             s = 0
@@ -283,7 +294,7 @@ class Scheduler:
             return s
 
         return sorted(
-            [s for s in self.all_slots if s not in used_by_col],
+            [s for s in candidate_pool if s not in used_by_col],
             key=lambda s: -score(s),
         )
 
