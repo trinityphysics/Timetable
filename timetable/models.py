@@ -80,11 +80,23 @@ class Class:
     A class (group of students) to be scheduled.
 
     When *sections* > 1 the class is split into multiple groups, each
-    receiving an auto-generated code, e.g. sections=2 for S4 Physics in
-    Column E produces ``S4E1`` and ``S4E2``.
+    receiving an auto-generated code.  Codes have the form::
 
-    If *pinned_teacher* is set that teacher **must** be assigned to every
-    section of this class, overriding all other scheduling rules.
+        {year_group}-{subject_initial}-{level_abbrev}-{column}-{section}
+
+    e.g. ``S5-P-H-E-1`` (S5, Physics, Higher, Column E, Section 1).
+
+    *allowed_teachers* controls teacher assignment:
+
+    - Empty list → any available teacher may be used.
+    - 1 teacher  → that teacher is pinned to every section (hard rule).
+    - len == sections (and > 1) → teacher[i] is assigned to section i+1
+      as a hard 1-per-section rule.
+    - len == sections (and == 1) → same as 1-teacher case above.
+    - Any other length → any of the listed teachers may be used (pool).
+
+    Individual entries may be ``""`` to mean "any" for that section when
+    *allowed_teachers* is used as a per-section specification.
     """
 
     year_group: str
@@ -92,16 +104,29 @@ class Class:
     level: str
     column: str
     sections: int = 1
-    # Optional: if set this teacher is pinned to every section of this class.
-    pinned_teacher: Optional[str] = None
+    # See class docstring for semantics.
+    allowed_teachers: List[str] = field(default_factory=list)
     periods_per_week: int = 1
     room: Optional[str] = None
 
     def codes(self) -> List[str]:
-        """Return the generated class code(s) for this class."""
-        if self.sections <= 1:
-            return [f"{self.year_group}{self.column}"]
-        return [f"{self.year_group}{self.column}{i}" for i in range(1, self.sections + 1)]
+        """Return the generated class code(s) for this class.
+
+        Format: ``{year_group}-{subject_initial}-{level_abbrev}-{column}-{section}``
+        e.g. ``S5-P-H-E-1`` or ``S4-E-N5-A-2``.
+        """
+        subj_init = self.subject[0].upper() if self.subject else "X"
+        lvl = self.level.strip().lower()
+        if lvl in ("n5", "national 5"):
+            level_abbrev = "N5"
+        elif lvl in ("higher", "h"):
+            level_abbrev = "H"
+        elif lvl in ("ah", "advanced higher"):
+            level_abbrev = "AH"
+        else:
+            level_abbrev = self.level[:2].upper() if self.level else "XX"
+        prefix = f"{self.year_group}-{subj_init}-{level_abbrev}-{self.column}"
+        return [f"{prefix}-{i}" for i in range(1, self.sections + 1)]
 
 
 @dataclass

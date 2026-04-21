@@ -61,6 +61,11 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
 
     # --- New Step 3: Classes ----------------------------------------------------
     for cls in data.get("classes", []):
+        # Backward-compat: accept legacy ``pinned_teacher`` field.
+        allowed = cls.get("allowed_teachers")
+        if not allowed:
+            pt = cls.get("pinned_teacher") or ""
+            allowed = [pt] if pt else []
         config.classes.append(
             Class(
                 year_group=cls["year_group"],
@@ -68,8 +73,9 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
                 level=cls.get("level", ""),
                 column=cls.get("column", ""),
                 sections=int(cls.get("sections", 1)),
-                pinned_teacher=cls.get("pinned_teacher") or None,
-                periods_per_week=int(cls.get("periods_per_week", 1)),
+                allowed_teachers=allowed,
+                # 0 signals "auto-derive from period map"
+                periods_per_week=int(cls.get("periods_per_week", 0)),
                 room=cls.get("room"),
             )
         )
@@ -77,13 +83,41 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
     # If classes were provided but no explicit subjects, expand classes → subjects
     if config.classes and not config.subjects:
         for cls in config.classes:
-            for code in cls.codes():
+            codes = cls.codes()
+            n = len(codes)
+            teachers = cls.allowed_teachers
+
+            # Resolve per-section teacher assignments
+            if len(teachers) == 1:
+                # Single teacher pinned to every section
+                assigned: List[str] = [teachers[0]] * n
+            elif len(teachers) == n:
+                # Per-section hard rule (entries may be "" for "any")
+                assigned = [t or "" for t in teachers]
+            elif len(teachers) == 0:
+                assigned = [""] * n
+            else:
+                # Pool — assign empty (any); pool matching not yet in scheduler
+                assigned = [""] * n
+
+            # Auto-derive periods_per_week from year-group period map
+            ppw = cls.periods_per_week
+            if not ppw:
+                yg_obj = next(
+                    (y for y in config.year_groups if y.name == cls.year_group), None
+                )
+                if yg_obj and cls.column:
+                    ppw = sum(1 for _, _, c in yg_obj.period_map if c == cls.column) or 1
+                else:
+                    ppw = 1
+
+            for code, teacher in zip(codes, assigned):
                 config.subjects.append(
                     Subject(
                         name=code,
                         column=cls.column,
-                        teacher=cls.pinned_teacher or "",
-                        periods_per_week=cls.periods_per_week,
+                        teacher=teacher,
+                        periods_per_week=ppw,
                         room=cls.room,
                     )
                 )

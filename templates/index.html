@@ -481,6 +481,47 @@
       .step-label { display: none; }
       .step-divider { width: 1rem; }
     }
+
+    /* ---- Section-teacher dropdowns ---- */
+    .section-teachers { display: flex; flex-direction: column; gap: 0.25rem; }
+    .section-teacher-row {
+      display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;
+    }
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; color: #4a5568;
+      background: #edf2f7; border-radius: 3px; padding: 0.1rem 0.3rem;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .section-teacher-row select {
+      padding: 0.22rem 0.4rem; border: 1px solid #cbd5e0; border-radius: 4px;
+      font-size: 0.78rem; background: #fff; color: #1a202c;
+    }
+
+    /* ---- Auto-calculated badges ---- */
+    .calc-badge {
+      display: inline-block; padding: 0.18rem 0.45rem;
+      background: #f0fff4; border: 1px solid #9ae6b4;
+      border-radius: 4px; font-size: 0.78rem; font-weight: 600;
+      color: #276749; white-space: nowrap;
+    }
+    .calc-badge.zero { background: #fff5f5; border-color: #feb2b2; color: #9b2c2c; }
+
+    /* ---- Split class review ---- */
+    .split-class-card {
+      border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 0.75rem; margin-bottom: 0.75rem; background: #f7fafc;
+    }
+    .split-class-card.conflict { border-color: #fc8181; background: #fff5f5; }
+    .split-class-title { font-size: 0.85rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; }
+    .split-conflict-warning {
+      font-size: 0.8rem; color: #9b2c2c; background: #fed7d7;
+      border-radius: 4px; padding: 0.4rem 0.6rem; margin-bottom: 0.5rem;
+    }
+    .split-table { border-collapse: collapse; font-size: 0.78rem; width: 100%; }
+    .split-table th, .split-table td {
+      border: 1px solid #e2e8f0; padding: 0.25rem 0.5rem; text-align: left;
+    }
+    .split-table thead th { background: #edf2f7; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -507,6 +548,11 @@
     <div class="step-item" id="step-indicator-3" onclick="goToStep(3)">
       <div class="step-num" id="step-num-3">3</div>
       <div class="step-label">Classes</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="step-indicator-4" onclick="goToStep(4)">
+      <div class="step-num" id="step-num-4">4</div>
+      <div class="step-label">Results &amp; Review</div>
     </div>
   </div>
 
@@ -572,10 +618,14 @@
   <div class="card hidden" id="step-3">
     <h2>Step 3 — Classes</h2>
     <p class="step-desc">
-      Enter each class to be scheduled.  If a class has multiple sections they are split
-      automatically — e.g. S4, Column E, 2 sections produces codes
-      <strong>S4E1</strong> and <strong>S4E2</strong>.  Optionally pin a teacher to a class
-      to override all scheduling rules (that teacher will always be assigned).
+      Enter each class to be scheduled.  Select the year group, subject, level, and column — the
+      number of periods per week is filled in automatically from the period map in Step 1.
+      If a class has multiple sections each section gets its own code
+      (e.g. <strong>S4-P-H-E-1</strong> and <strong>S4-P-H-E-2</strong>).
+      Use the per-section teacher dropdowns to assign teachers:
+      leave a section on <em>Any teacher</em> for automatic assignment,
+      or select a specific teacher to pin that section as a hard rule.
+      When every section has a specific teacher the assignment is enforced strictly.
     </p>
 
     <div class="form-section">
@@ -591,11 +641,14 @@
     <p id="status"></p>
   </div>
 
-  <!-- ── Results ── -->
-  <div class="card" id="results">
-    <div id="placeholder">
+  <!-- ── Step 4: Results & Review ── -->
+  <div class="card hidden" id="step-4">
+    <h2>Step 4 — Results &amp; Review</h2>
+
+    <div id="placeholder" style="text-align:center;padding:3rem 1rem;color:#a0aec0;font-size:.9rem">
       Complete all three steps above and click <strong>Generate Timetable</strong> to see results.
     </div>
+
     <div id="output" class="hidden">
       <div class="result-grid" id="stats"></div>
 
@@ -603,6 +656,7 @@
         <div class="tab active" data-tab="timetable">Timetable</div>
         <div class="tab" data-tab="sessions">All Sessions</div>
         <div class="tab" data-tab="conflicts">Conflicts</div>
+        <div class="tab" data-tab="splitreview">Split Class Review</div>
       </div>
 
       <div class="tab-panel active" id="tab-timetable">
@@ -629,6 +683,23 @@
           &#10003; No conflicts found.
         </p>
       </div>
+
+      <div class="tab-panel" id="tab-splitreview">
+        <p style="font-size:.82rem;color:#718096;margin-bottom:.75rem">
+          Multi-section classes are listed below.  If both sections are assigned to the
+          same teacher (a conflict for parallel sections), this is highlighted.
+          Change teacher assignments here and click <strong>Apply &amp; Re-schedule</strong>
+          to update the timetable.
+        </p>
+        <div id="split-class-review"></div>
+        <button id="btn-reschedule" class="btn-next" style="margin-top:.75rem">
+          &#9889; Apply &amp; Re-schedule
+        </button>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(3)">&#9668; Back to Classes</button>
     </div>
   </div>
 </main>
@@ -637,9 +708,10 @@
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 // ── State ──
-// year_groups: [{name: "S3", period_map: {day: {period: colLetter}}}]
-// teachers:    [{name: "", non_contact: 0, unavailable: []}]
-// classes:     [{year_group:"", subject:"", level:"", column:"", sections:1, pinned_teacher:null, periods_per_week:1}]
+// year_groups:  [{name: "S3", period_map: {day: {period: colLetter}}}]
+// teachers:     [{name: "", non_contact: 0, unavailable: []}]
+// classes:      [{year_group:"", subject:"Physics", level:"Higher", column:"",
+//                 sections:1, section_teachers:[""], /* "" = any */}]
 let s = { name: "", days_per_week: 5, periods_per_day: 6, year_groups: [], teachers: [], classes: [] };
 
 let currentStep = 1;
@@ -688,10 +760,10 @@ const EXAMPLE = {
     { name: "Mrs. Brown", non_contact: 1, unavailable: [] },
   ],
   classes: [
-    { year_group:"S4", subject:"Physics",     level:"Higher",          column:"E", sections:2, pinned_teacher:"Ms. Smith",  periods_per_week:4 },
-    { year_group:"S4", subject:"Electronics", level:"National 5",      column:"E", sections:1, pinned_teacher:"Mr. Jones",  periods_per_week:3 },
-    { year_group:"S5", subject:"Physics",     level:"Advanced Higher", column:"A", sections:1, pinned_teacher:"Ms. Smith",  periods_per_week:3 },
-    { year_group:"S3", subject:"Physics",     level:"National 5",      column:"B", sections:2, pinned_teacher:"Mrs. Brown", periods_per_week:4 },
+    { year_group:"S4", subject:"Physics",     level:"Higher", column:"E", sections:2, section_teachers:["Ms. Smith","Mr. Jones"] },
+    { year_group:"S4", subject:"Electronics", level:"N5",     column:"E", sections:1, section_teachers:["Mr. Jones"] },
+    { year_group:"S5", subject:"Physics",     level:"AH",     column:"A", sections:1, section_teachers:["Ms. Smith"] },
+    { year_group:"S3", subject:"Physics",     level:"N5",     column:"B", sections:2, section_teachers:["Mrs. Brown",""] },
   ],
 };
 
@@ -702,13 +774,55 @@ function esc(v) {
     .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
+function levelAbbrev(level) {
+  const l = (level || "").trim().toLowerCase();
+  if (l === "n5" || l === "national 5") return "N5";
+  if (l === "higher" || l === "h") return "H";
+  if (l === "ah" || l === "advanced higher") return "AH";
+  return (level || "").substring(0, 2).toUpperCase() || "XX";
+}
+
+function subjectInitial(subject) {
+  return ((subject || "").trim()[0] || "X").toUpperCase();
+}
+
 function getClassCodes(cls) {
-  if (!cls.year_group || !cls.column) return [];
-  const n = parseInt(cls.sections) || 1;
-  if (n <= 1) return [cls.year_group + cls.column];
+  if (!cls.year_group || !cls.column || !cls.subject || !cls.level) return [];
+  const la  = levelAbbrev(cls.level);
+  const si  = subjectInitial(cls.subject);
+  const col = (cls.column || "").toUpperCase().trim();
+  const n   = parseInt(cls.sections) || 1;
   const arr = [];
-  for (let i = 1; i <= n; i++) arr.push(cls.year_group + cls.column + i);
+  for (let i = 1; i <= n; i++) arr.push(cls.year_group + "-" + si + "-" + la + "-" + col + "-" + i);
   return arr;
+}
+
+/** Return unique sorted column letters found in the given year-group's period map. */
+function getColumnsForYG(ygName) {
+  const yg = s.year_groups.find(y => y.name === ygName);
+  if (!yg) return [];
+  const colSet = new Set();
+  for (const d in yg.period_map) {
+    for (const p in yg.period_map[d]) {
+      const col = (yg.period_map[d][p] || "").toUpperCase().trim();
+      if (col) colSet.add(col);
+    }
+  }
+  return [...colSet].sort();
+}
+
+/** Count how many times the given column appears in the class's year-group period map. */
+function getPeriodsForClass(cls) {
+  if (!cls.year_group || !cls.column) return 0;
+  const yg = s.year_groups.find(y => y.name === cls.year_group);
+  if (!yg) return 0;
+  let count = 0;
+  for (const d in yg.period_map) {
+    for (const p in yg.period_map[d]) {
+      if ((yg.period_map[d][p] || "").toUpperCase().trim() === cls.column) count++;
+    }
+  }
+  return count;
 }
 
 function serializePeriodMap(pm) {
@@ -738,15 +852,16 @@ function slotAddRowHtml(dayId, perId, addFn) {
 
 // ── Step navigation ──
 function goToStep(n) {
-  [1,2,3].forEach(i => {
+  [1,2,3,4].forEach(i => {
     const panel = document.getElementById("step-" + i);
     const ind   = document.getElementById("step-indicator-" + i);
+    if (!ind) return;
     if (i === n) {
-      panel.classList.remove("hidden");
+      if (panel) panel.classList.remove("hidden");
       ind.classList.add("active");
       ind.classList.remove("done");
     } else {
-      panel.classList.add("hidden");
+      if (panel) panel.classList.add("hidden");
       ind.classList.remove("active");
       if (i < n) ind.classList.add("done"); else ind.classList.remove("done");
     }
@@ -849,6 +964,28 @@ function addTeacher() {
   renderClasses();
 }
 
+// ── Class field handlers ──
+function onClassYGChange(i, ygName) {
+  s.classes[i].year_group = ygName;
+  s.classes[i].column = "";   // reset column when year group changes
+  renderClasses();
+}
+
+function onClassColChange(i, col) {
+  s.classes[i].column = col;
+  renderClasses();  // refresh periods badge
+}
+
+function onClassSectionsChange(i, n) {
+  n = Math.max(1, n);
+  s.classes[i].sections = n;
+  // Resize section_teachers to match new section count
+  const st = s.classes[i].section_teachers || [];
+  while (st.length < n) st.push("");
+  s.classes[i].section_teachers = st.slice(0, n);
+  renderClasses();
+}
+
 // ── Render: Classes ──
 function renderClasses() {
   const c = document.getElementById("classes-container");
@@ -858,54 +995,125 @@ function renderClasses() {
     '<option value="' + esc(yg.name) + '">' + esc(yg.name) + "</option>"
   ).join("");
 
-  const teacherOpts = '<option value="">— none (auto-assign) —</option>' +
+  const teacherAnyOpt = '<option value="">Any teacher</option>';
+  const teacherOpts   = teacherAnyOpt +
     s.teachers.map(t => '<option value="' + esc(t.name) + '">' + esc(t.name) + "</option>").join("");
 
   s.classes.forEach((cls, i) => {
     const div = document.createElement("div");
     div.className = "item-row";
 
+    // Column options from selected year group
+    const availCols = getColumnsForYG(cls.year_group);
+    const colOpts = availCols.length > 0
+      ? availCols.map(col => '<option value="' + esc(col) + '">' + esc(col) + "</option>").join("")
+      : "";
+
+    // Code badges
     const codes = getClassCodes(cls);
     const codeHtml = codes.length > 0
       ? codes.map(cd => '<span class="code-badge">' + esc(cd) + "</span>").join(" ")
-      : '<span style="color:#a0aec0;font-size:.75rem">—</span>';
+      : '<span style="color:#a0aec0;font-size:.75rem">\u2014</span>';
+
+    // Periods/week badge (auto-calculated from period map)
+    const ppw = getPeriodsForClass(cls);
+    const ppwHtml = '<span class="calc-badge' + (ppw === 0 ? " zero" : "") + '">' +
+      (ppw > 0 ? ppw + " / wk" : "\u2014 (select year group &amp; column)") + '</span>';
+
+    // Per-section teacher dropdowns
+    const n = parseInt(cls.sections) || 1;
+    const st = cls.section_teachers || [];
+    let stHtml = '<div class="section-teachers">';
+    for (let j = 0; j < n; j++) {
+      stHtml += '<div class="section-teacher-row">' +
+        '<span class="section-label">\u00a7' + (j + 1) + '</span>' +
+        '<select id="cls' + i + '-st' + j + '" onchange="s.classes[' + i +
+        '].section_teachers[' + j + ']=this.value">' + teacherOpts + '</select>' +
+        '</div>';
+    }
+    stHtml += '</div>';
+    // Teacher rule note
+    const assigned = (cls.section_teachers || []).slice(0, n);
+    const specific = assigned.filter(t => t && t.trim());
+    let ruleNote = "";
+    if (specific.length === 0) {
+      ruleNote = "Any available teacher will be used.";
+    } else if (specific.length === 1 && n === 1) {
+      ruleNote = "\u26a0 Hard: " + esc(specific[0]) + " must teach this class.";
+    } else if (specific.length === n && n > 1 && new Set(specific).size === n) {
+      ruleNote = "\u26a0 Hard: one teacher per section (1:1 rule).";
+    } else if (specific.length === n && n > 1) {
+      ruleNote = "\u26a0 Some sections share the same teacher \u2014 consider assigning different teachers.";
+    } else {
+      ruleNote = "Mixed: " + specific.length + " of " + n + " sections have a specific teacher.";
+    }
 
     div.innerHTML =
       '<div class="class-row-fields">' +
+
+      // Year Group
       '<div class="field-group"><label>Year Group</label>' +
-      '<select id="cls' + i + '-yg" onchange="s.classes[' + i + '].year_group=this.value; renderClasses()">' +
-      '<option value="">— select —</option>' + ygOpts + '</select></div>' +
+      '<select id="cls' + i + '-yg" onchange="onClassYGChange(' + i + ',this.value)">' +
+      '<option value="">\u2014 select \u2014</option>' + ygOpts + '</select></div>' +
+
+      // Subject
       '<div class="field-group"><label>Subject</label>' +
-      '<input type="text" value="' + esc(cls.subject) + '"' +
-      ' onchange="s.classes[' + i + '].subject=this.value" /></div>' +
+      '<select id="cls' + i + '-subj" onchange="s.classes[' + i + '].subject=this.value; renderClasses()">' +
+      '<option value="Physics">Physics</option>' +
+      '<option value="Electronics">Electronics</option>' +
+      '</select></div>' +
+
+      // Level
       '<div class="field-group"><label>Level</label>' +
-      '<input type="text" value="' + esc(cls.level) + '" placeholder="e.g. Higher" style="width:110px"' +
-      ' onchange="s.classes[' + i + '].level=this.value" /></div>' +
+      '<select id="cls' + i + '-lvl" onchange="s.classes[' + i + '].level=this.value; renderClasses()">' +
+      '<option value="N5">N5</option>' +
+      '<option value="Higher">Higher</option>' +
+      '<option value="AH">AH</option>' +
+      '</select></div>' +
+
+      // Column (from year group)
       '<div class="field-group"><label>Column</label>' +
-      '<input type="text" value="' + esc(cls.column) + '" placeholder="e.g. E" style="width:56px" maxlength="10"' +
-      ' oninput="s.classes[' + i + '].column=this.value.toUpperCase().trim(); renderClasses()" /></div>' +
+      '<select id="cls' + i + '-col" onchange="onClassColChange(' + i + ',this.value)">' +
+      '<option value="">\u2014</option>' + colOpts + '</select></div>' +
+
+      // Sections
       '<div class="field-group"><label>Sections</label>' +
-      '<input type="number" value="' + (cls.sections || 1) + '" min="1" max="20" style="width:56px"' +
-      ' onchange="s.classes[' + i + '].sections=parseInt(this.value)||1; renderClasses()" /></div>' +
-      '<div class="field-group"><label>Periods / Week</label>' +
-      '<input type="number" value="' + (cls.periods_per_week || 1) + '" min="1" style="width:56px"' +
-      ' onchange="s.classes[' + i + '].periods_per_week=parseInt(this.value)||1" /></div>' +
-      '<div class="field-group"><label>Pinned Teacher <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional &mdash; overrides all rules)</span></label>' +
-      '<select id="cls' + i + '-tch" onchange="s.classes[' + i + '].pinned_teacher=this.value||null">' +
-      teacherOpts + '</select></div>' +
+      '<input type="number" id="cls' + i + '-sec" value="' + n + '" min="1" max="20" style="width:56px"' +
+      ' onchange="onClassSectionsChange(' + i + ',parseInt(this.value)||1)" /></div>' +
+
+      // Per-section teacher assignment
+      '<div class="field-group"><label>Teacher(s) per Section' +
+      ' <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:#718096">' +
+      ruleNote + '</span></label>' + stHtml + '</div>' +
+
+      // Code badges
       '<div class="field-group" style="min-width:80px"><label>Code(s)</label>' +
       '<div style="padding:.25rem 0;display:flex;gap:.25rem;flex-wrap:wrap">' + codeHtml + '</div></div>' +
+
+      // Periods/week (auto-calculated)
+      '<div class="field-group"><label>Periods/Wk</label>' +
+      '<div style="padding:.25rem 0">' + ppwHtml + '</div></div>' +
+
       '</div>' +
       '<button class="btn-delete" onclick="s.classes.splice(' + i + ',1); renderClasses()" title="Remove class">\u2715</button>';
 
     c.appendChild(div);
-    document.getElementById("cls" + i + "-yg").value  = cls.year_group || "";
-    document.getElementById("cls" + i + "-tch").value = cls.pinned_teacher || "";
+
+    // Set select values after innerHTML
+    document.getElementById("cls" + i + "-yg").value   = cls.year_group || "";
+    document.getElementById("cls" + i + "-col").value  = cls.column || "";
+    document.getElementById("cls" + i + "-subj").value = cls.subject || "Physics";
+    document.getElementById("cls" + i + "-lvl").value  = cls.level || "N5";
+    const stArr = cls.section_teachers || [];
+    for (let j = 0; j < n; j++) {
+      const el = document.getElementById("cls" + i + "-st" + j);
+      if (el) el.value = stArr[j] || "";
+    }
   });
 }
 
 function addClass() {
-  s.classes.push({ year_group:"", subject:"", level:"", column:"", sections:1, pinned_teacher:null, periods_per_week:1 });
+  s.classes.push({ year_group:"", subject:"Physics", level:"Higher", column:"", sections:1, section_teachers:[""] });
   renderClasses();
 }
 
@@ -936,18 +1144,21 @@ function buildConfig() {
       }
     }
   });
-  s.classes.forEach(cls => { if (cls.column && cls.column.trim()) colSet.add(cls.column.trim().toUpperCase()); });
+  s.classes.forEach(cls => { if (cls.column) colSet.add(cls.column.toUpperCase().trim()); });
   const columns = [...colSet].sort().map(name => ({ name, unavailable: [] }));
 
-  // Expand classes to subjects
+  // Expand classes to subjects with per-section teacher assignments
   const subjects = [];
   s.classes.forEach(cls => {
-    getClassCodes(cls).forEach(code => {
+    const codes = getClassCodes(cls);
+    const ppw   = getPeriodsForClass(cls) || 1;
+    const sectionTeachers = cls.section_teachers || [];
+    codes.forEach((code, j) => {
       subjects.push({
         name: code,
         column: (cls.column || "").toUpperCase().trim(),
-        teacher: cls.pinned_teacher || "",
-        periods_per_week: parseInt(cls.periods_per_week) || 1,
+        teacher: sectionTeachers[j] || "",
+        periods_per_week: ppw,
       });
     });
   });
@@ -967,18 +1178,19 @@ function buildConfig() {
       level: cls.level,
       column: (cls.column || "").toUpperCase().trim(),
       sections: parseInt(cls.sections) || 1,
-      pinned_teacher: cls.pinned_teacher || null,
-      periods_per_week: parseInt(cls.periods_per_week) || 1,
+      allowed_teachers: (cls.section_teachers || []).map(t => t || ""),
+      periods_per_week: getPeriodsForClass(cls) || 1,
     })),
   };
 }
 
 // ── UI wiring ──
-const btnSchedule = document.getElementById("btn-schedule");
-const btnReset    = document.getElementById("btn-reset");
-const status      = document.getElementById("status");
-const placeholder = document.getElementById("placeholder");
-const output      = document.getElementById("output");
+const btnSchedule  = document.getElementById("btn-schedule");
+const btnReschedule = document.getElementById("btn-reschedule");
+const btnReset     = document.getElementById("btn-reset");
+const status       = document.getElementById("status");
+const placeholder  = document.getElementById("placeholder");
+const output       = document.getElementById("output");
 
 loadExample();
 goToStep(1);
@@ -1005,9 +1217,10 @@ document.querySelectorAll(".tab").forEach(tab => {
   });
 });
 
-btnSchedule.addEventListener("click", async () => {
+async function runSchedule() {
   const data = buildConfig();
   btnSchedule.disabled = true;
+  if (btnReschedule) btnReschedule.disabled = true;
   setStatus("Scheduling\u2026", "");
   try {
     const resp = await fetch("/api/schedule", {
@@ -1017,20 +1230,26 @@ btnSchedule.addEventListener("click", async () => {
     });
     const json = await resp.json();
     if (!resp.ok) {
-      const msg = json.error || "Unknown error";
+      const msg     = json.error || "Unknown error";
       const details = json.details ? "\n\u2022 " + json.details.join("\n\u2022 ") : "";
       setStatus(msg + details, "error");
       return;
     }
     renderResults(json, data);
+    renderSplitClassReview(json);
+    goToStep(4);
     setStatus("Done \u2713", "ok");
-    document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+    document.getElementById("step-4").scrollIntoView({ behavior: "smooth" });
   } catch (e) {
     setStatus("Network error: " + e.message, "error");
   } finally {
     btnSchedule.disabled = false;
+    if (btnReschedule) btnReschedule.disabled = false;
   }
-});
+}
+
+btnSchedule.addEventListener("click", runSchedule);
+if (btnReschedule) btnReschedule.addEventListener("click", runSchedule);
 
 // ── Results rendering ──
 function renderResults(result, cfg) {
@@ -1090,6 +1309,94 @@ function renderResults(result, cfg) {
       cl.appendChild(li);
     });
   }
+}
+
+// ── Split class review ──
+function renderSplitClassReview(result) {
+  const container = document.getElementById("split-class-review");
+  const multiSection = s.classes.filter(cls => (parseInt(cls.sections) || 1) > 1);
+
+  if (multiSection.length === 0) {
+    container.innerHTML = '<p style="color:#718096;font-size:.82rem">No multi-section classes in this timetable.</p>';
+    return;
+  }
+
+  // Build session lookup: subject_code → {teacher, slots[]}
+  const sessionMap = {};
+  result.sessions.forEach(sess => {
+    if (!sessionMap[sess.subject]) sessionMap[sess.subject] = { teacher: sess.teacher, slots: [] };
+    sessionMap[sess.subject].slots.push({ day: sess.day, period: sess.period });
+  });
+
+  const teacherAnyOpt = '<option value="">Any teacher</option>';
+  const teacherOpts   = teacherAnyOpt +
+    s.teachers.map(t => '<option value="' + esc(t.name) + '">' + esc(t.name) + "</option>").join("");
+
+  let html = "";
+  multiSection.forEach(cls => {
+    const realIdx = s.classes.indexOf(cls);
+    const codes   = getClassCodes(cls);
+    const codeBase = codes.length > 0 ? codes[0].split("-").slice(0, -1).join("-") : "";
+
+    // Detect conflict: parallel sections (same column) both assigned to the same teacher
+    const assignedTeachers = codes.map(code => (sessionMap[code] || {}).teacher || "");
+    const allSame = assignedTeachers.length > 1 &&
+      assignedTeachers.every(t => t && t === assignedTeachers[0]);
+    const isConflict = allSame;
+
+    html += '<div class="split-class-card' + (isConflict ? " conflict" : "") + '">';
+    html += '<div class="split-class-title">' + esc(codeBase) + '</div>';
+
+    if (isConflict) {
+      html += '<div class="split-conflict-warning">' +
+        '\u26a0 All sections are assigned to the same teacher (' + esc(assignedTeachers[0]) +
+        '). Sections in the same column run in parallel \u2014 assign different teachers ' +
+        'below and click <strong>Apply &amp; Re-schedule</strong>.' +
+        '</div>';
+    }
+
+    html += '<table class="split-table"><thead><tr>' +
+      '<th>Section</th><th>Scheduled Slots</th><th>Assigned Teacher</th><th>Change Teacher</th>' +
+      '</tr></thead><tbody>';
+
+    codes.forEach((code, j) => {
+      const info     = sessionMap[code] || { teacher: "", slots: [] };
+      const slotText = info.slots.map(sl => (DAY_NAMES[sl.day-1]||"Day "+sl.day) + " P" + sl.period).join(", ") || "\u2014";
+      html += '<tr>' +
+        '<td><span class="code-badge">' + esc(code) + "</span></td>" +
+        '<td style="font-size:.75rem">' + esc(slotText) + "</td>" +
+        '<td>' + esc(info.teacher || "\u2014") + "</td>" +
+        '<td><select id="scr-' + realIdx + '-' + j + '"' +
+        ' onchange="updateSectionTeacher(' + realIdx + ',' + j + ',this.value)">' +
+        teacherOpts + "</select></td>" +
+        "</tr>";
+    });
+
+    html += "</tbody></table></div>";
+  });
+
+  container.innerHTML = html;
+
+  // Set current teacher values in dropdowns
+  multiSection.forEach(cls => {
+    const realIdx = s.classes.indexOf(cls);
+    const codes   = getClassCodes(cls);
+    codes.forEach((code, j) => {
+      const info = sessionMap[code] || {};
+      const el   = document.getElementById("scr-" + realIdx + "-" + j);
+      if (el) el.value = info.teacher || "";
+    });
+  });
+}
+
+/** Update a section's teacher assignment from the split-class review panel. */
+function updateSectionTeacher(clsIdx, sectionIdx, teacher) {
+  if (!s.classes[clsIdx].section_teachers) s.classes[clsIdx].section_teachers = [];
+  // Ensure array is long enough
+  const n = parseInt(s.classes[clsIdx].sections) || 1;
+  while (s.classes[clsIdx].section_teachers.length < n)
+    s.classes[clsIdx].section_teachers.push("");
+  s.classes[clsIdx].section_teachers[sectionIdx] = teacher;
 }
 
 function renderGrid(sessions, daysPerWeek, periodsPerDay) {
