@@ -890,7 +890,7 @@ function renderClasses() {
       '<div class="field-group"><label>Periods / Week</label>' +
       '<input type="number" value="' + (cls.periods_per_week || 1) + '" min="1" style="width:56px"' +
       ' onchange="s.classes[' + i + '].periods_per_week=parseInt(this.value)||1" /></div>' +
-      '<div class="field-group"><label>Pinned Teacher <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — overrides all rules)</span></label>' +
+      '<div class="field-group"><label>Pinned Teacher <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional &mdash; overrides all rules)</span></label>' +
       '<select id="cls' + i + '-tch" onchange="s.classes[' + i + '].pinned_teacher=this.value||null">' +
       teacherOpts + '</select></div>' +
       '<div class="field-group" style="min-width:80px"><label>Code(s)</label>' +
