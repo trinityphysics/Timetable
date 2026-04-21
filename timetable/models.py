@@ -1,7 +1,7 @@
 """Data models for the timetabling application."""
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # (day, period) — both 1-indexed
 Slot = Tuple[int, int]
@@ -14,6 +14,8 @@ class Teacher:
     name: str
     # Slots when this teacher is unavailable, e.g. [(1, 1), (3, 4)]
     unavailable: List[Slot] = field(default_factory=list)
+    # Number of non-contact (free) periods per week this teacher is entitled to
+    non_contact_entitlement: int = 0
 
     def is_available(self, slot: Slot) -> bool:
         return slot not in self.unavailable
@@ -36,7 +38,8 @@ class Subject:
     # All subjects sharing a column are scheduled in the same time slots
     # (students pick exactly one subject per column).
     column: str
-    teacher: str
+    # Teacher name; empty string means teacher is yet to be assigned.
+    teacher: str = ""
     periods_per_week: int = 1
     # If set, this room is requested for every session of this subject.
     room: Optional[str] = None
@@ -57,6 +60,51 @@ class Column:
 
 
 @dataclass
+class YearGroup:
+    """
+    A school year group (e.g. S3, S4, S5).
+
+    Stores the mapping of (day, period) → column letter so the timetable
+    can show which column runs at each time slot for this year group.
+    Each entry in *period_map* is a ``(day, period, column_name)`` tuple.
+    """
+
+    name: str
+    # List of (day, period, column_name) mappings for this year group
+    period_map: List[Tuple[int, int, str]] = field(default_factory=list)
+
+
+@dataclass
+class Class:
+    """
+    A class (group of students) to be scheduled.
+
+    When *sections* > 1 the class is split into multiple groups, each
+    receiving an auto-generated code, e.g. sections=2 for S4 Physics in
+    Column E produces ``S4E1`` and ``S4E2``.
+
+    If *pinned_teacher* is set that teacher **must** be assigned to every
+    section of this class, overriding all other scheduling rules.
+    """
+
+    year_group: str
+    subject: str
+    level: str
+    column: str
+    sections: int = 1
+    # Optional: if set this teacher is pinned to every section of this class.
+    pinned_teacher: Optional[str] = None
+    periods_per_week: int = 1
+    room: Optional[str] = None
+
+    def codes(self) -> List[str]:
+        """Return the generated class code(s) for this class."""
+        if self.sections <= 1:
+            return [f"{self.year_group}{self.column}"]
+        return [f"{self.year_group}{self.column}{i}" for i in range(1, self.sections + 1)]
+
+
+@dataclass
 class TimetableConfig:
     """Complete timetable configuration supplied by the user."""
 
@@ -67,6 +115,9 @@ class TimetableConfig:
     rooms: List[Room] = field(default_factory=list)
     subjects: List[Subject] = field(default_factory=list)
     columns: List[Column] = field(default_factory=list)
+    # New structured input (Steps 1-3 of the wizard)
+    year_groups: List[YearGroup] = field(default_factory=list)
+    classes: List[Class] = field(default_factory=list)
 
     def all_slots(self) -> List[Slot]:
         """Return every (day, period) slot in the week."""

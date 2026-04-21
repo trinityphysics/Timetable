@@ -34,60 +34,71 @@
       gap: 1.5rem;
     }
 
+    /* ---- Step bar ---- */
+    .step-bar {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+      padding: 1rem 1.5rem;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      flex: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+    .step-item:hover { background: #f7fafc; }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #cbd5e0;
+      color: #4a5568;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-item.active .step-num { background: #3182ce; color: #fff; }
+    .step-item.done   .step-num { background: #38a169; color: #fff; }
+    .step-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #718096;
+    }
+    .step-item.active .step-label { color: #2d3748; }
+    .step-item.done   .step-label { color: #276749; }
+    .step-divider {
+      height: 2px; width: 2rem; background: #e2e8f0;
+      flex-shrink: 0;
+    }
+
+    /* ---- Card ---- */
     .card {
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,.1);
       padding: 1.25rem;
     }
-
     .card h2 {
       font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 1rem;
+      margin-bottom: 0.35rem;
       color: #2d3748;
     }
-
-    .actions {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
-      flex-wrap: wrap;
+    .step-desc {
+      font-size: 0.82rem;
+      color: #718096;
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
     }
 
-    button {
-      padding: 0.55rem 1.25rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 600;
-      transition: background .2s, opacity .2s;
-    }
-
-    #btn-schedule {
-      background: #3182ce;
-      color: #fff;
-    }
-    #btn-schedule:hover { background: #2b6cb0; }
-    #btn-schedule:disabled { opacity: .5; cursor: default; }
-
-    #btn-reset {
-      background: #edf2f7;
-      color: #4a5568;
-    }
-    #btn-reset:hover { background: #e2e8f0; }
-
-    #status {
-      font-size: 0.8rem;
-      margin-top: 0.5rem;
-      min-height: 1.2em;
-    }
-    #status.error { color: #e53e3e; }
-    #status.ok    { color: #38a169; }
-
-    /* ---- Form styles ---- */
-
+    /* ---- Settings row ---- */
     .settings-row {
       display: flex;
       flex-wrap: wrap;
@@ -97,17 +108,8 @@
       border-bottom: 1px solid #e2e8f0;
     }
 
-    .three-cols {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    @media (max-width: 860px) {
-      .three-cols { grid-template-columns: 1fr; }
-    }
-
+    /* ---- Form section ---- */
+    .form-section { margin-bottom: 1rem; }
     .form-section h3 {
       font-size: 0.8rem;
       font-weight: 700;
@@ -119,6 +121,7 @@
       border-bottom: 2px solid #e2e8f0;
     }
 
+    /* ---- Item rows ---- */
     .item-row {
       display: flex;
       flex-wrap: wrap;
@@ -136,7 +139,6 @@
       flex-direction: column;
       gap: 0.2rem;
     }
-
     .field-group label {
       font-size: 0.68rem;
       color: #718096;
@@ -144,7 +146,6 @@
       letter-spacing: .05em;
       font-weight: 600;
     }
-
     .field-group input[type=text],
     .field-group input[type=number],
     .field-group select {
@@ -156,7 +157,6 @@
       color: #1a202c;
       min-width: 0;
     }
-
     .field-group input[type=text]:focus,
     .field-group input[type=number]:focus,
     .field-group select:focus {
@@ -164,10 +164,9 @@
       border-color: #4299e1;
       box-shadow: 0 0 0 2px rgba(66,153,225,.2);
     }
-
     .field-group input[type=text] { min-width: 110px; }
 
-    /* Slot chips */
+    /* ---- Slot chips ---- */
     .slot-chips {
       display: flex;
       flex-wrap: wrap;
@@ -175,7 +174,6 @@
       align-items: center;
       padding: 0.2rem 0;
     }
-
     .chip {
       background: #e2e8f0;
       border-radius: 9999px;
@@ -186,7 +184,6 @@
       gap: 0.2rem;
       color: #4a5568;
     }
-
     .chip-btn {
       background: none;
       border: none;
@@ -198,7 +195,6 @@
       font-weight: 700;
     }
     .chip-btn:hover { color: #e53e3e; }
-
     .slot-add-row {
       display: flex;
       align-items: center;
@@ -206,7 +202,6 @@
       font-size: 0.7rem;
       color: #718096;
     }
-
     .slot-add-row input {
       width: 44px;
       padding: 0.2rem 0.3rem;
@@ -217,11 +212,7 @@
       background: #fff;
       color: #1a202c;
     }
-    .slot-add-row input:focus {
-      outline: none;
-      border-color: #4299e1;
-    }
-
+    .slot-add-row input:focus { outline: none; border-color: #4299e1; }
     .btn-add-slot {
       padding: 0.18rem 0.45rem;
       font-size: 0.75rem;
@@ -234,17 +225,19 @@
     }
     .btn-add-slot:hover { background: #bee3f8; }
 
+    /* ---- Buttons ---- */
     .btn-delete {
       background: none;
       color: #a0aec0;
       border: none;
-      font-size: 1.05rem;
+      font-size: 0.85rem;
       cursor: pointer;
-      padding: 0.15rem 0.35rem;
+      padding: 0.15rem 0.45rem;
       border-radius: 4px;
       margin-left: auto;
       align-self: flex-start;
       line-height: 1;
+      white-space: nowrap;
     }
     .btn-delete:hover { color: #e53e3e; background: #fff5f5; }
 
@@ -262,13 +255,136 @@
     }
     .btn-add-item:hover { background: #edf2f7; border-color: #a0aec0; }
 
-    /* Subject rows have more fields — wrap naturally */
-    .subject-row-fields {
+    /* ---- Step navigation ---- */
+    .step-nav {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-prev {
+      padding: 0.55rem 1.25rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    .btn-prev:hover { background: #e2e8f0; }
+    .btn-next {
+      padding: 0.55rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: #3182ce;
+      color: #fff;
+    }
+    .btn-next:hover { background: #2b6cb0; }
+    #btn-schedule {
+      padding: 0.55rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: #38a169;
+      color: #fff;
+      transition: background .2s, opacity .2s;
+    }
+    #btn-schedule:hover { background: #2f855a; }
+    #btn-schedule:disabled { opacity: .5; cursor: default; }
+    #btn-reset {
+      padding: 0.55rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    #btn-reset:hover { background: #e2e8f0; }
+
+    #status {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+    }
+    #status.error { color: #e53e3e; }
+    #status.ok    { color: #38a169; }
+
+    /* ---- Year group period grid ---- */
+    .yg-row { flex-direction: column; }
+    .yg-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .period-grid {
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .period-grid th, .period-grid td {
+      border: 1px solid #e2e8f0;
+      padding: 0.2rem 0.3rem;
+      text-align: center;
+    }
+    .period-grid thead th {
+      background: #edf2f7;
+      font-weight: 600;
+      color: #4a5568;
+    }
+    .period-grid .period-label {
+      background: #edf2f7;
+      font-weight: 600;
+      color: #4a5568;
+      white-space: nowrap;
+    }
+    .col-input {
+      width: 42px;
+      padding: 0.2rem 0.25rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 3px;
+      font-size: 0.78rem;
+      text-align: center;
+      text-transform: uppercase;
+      background: #fff;
+      color: #1a202c;
+    }
+    .col-input:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 2px rgba(66,153,225,.2);
+    }
+
+    /* ---- Class row ---- */
+    .class-row-fields {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       flex: 1;
       min-width: 0;
+      align-items: flex-start;
+    }
+    .code-badge {
+      display: inline-block;
+      padding: 0.18rem 0.45rem;
+      background: #ebf8ff;
+      border: 1px solid #bee3f8;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2b6cb0;
+      white-space: nowrap;
     }
 
     /* ---- Results ---- */
@@ -278,7 +394,6 @@
       gap: 1rem;
       margin-bottom: 1rem;
     }
-
     .stat-box {
       background: #ebf8ff;
       border-left: 4px solid #3182ce;
@@ -289,7 +404,6 @@
     .stat-box .value { font-size: 1.5rem; font-weight: 700; color: #2b6cb0; }
 
     .timetable-wrapper { overflow-x: auto; }
-
     table {
       border-collapse: collapse;
       width: 100%;
@@ -318,10 +432,7 @@
     .pill-hard { background: #fed7d7; color: #9b2c2c; }
     .pill-soft { background: #fefcbf; color: #744210; }
 
-    .conflict-list {
-      list-style: none;
-      margin-top: 0.5rem;
-    }
+    .conflict-list { list-style: none; margin-top: 0.5rem; }
     .conflict-list li {
       padding: 0.4rem 0.6rem;
       border-radius: 4px;
@@ -365,6 +476,11 @@
     }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    @media (max-width: 600px) {
+      .step-label { display: none; }
+      .step-divider { width: 1rem; }
+    }
   </style>
 </head>
 <body>
@@ -375,11 +491,34 @@
 </header>
 
 <main>
-  <!-- Configuration form -->
-  <div class="card">
-    <h2>Timetable Configuration</h2>
 
-    <!-- Basic settings -->
+  <!-- ── Step indicator ── -->
+  <div class="step-bar">
+    <div class="step-item active" id="step-indicator-1" onclick="goToStep(1)">
+      <div class="step-num" id="step-num-1">1</div>
+      <div class="step-label">Year Groups &amp; Columns</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="step-indicator-2" onclick="goToStep(2)">
+      <div class="step-num" id="step-num-2">2</div>
+      <div class="step-label">Teachers</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="step-indicator-3" onclick="goToStep(3)">
+      <div class="step-num" id="step-num-3">3</div>
+      <div class="step-label">Classes</div>
+    </div>
+  </div>
+
+  <!-- ── Step 1: Year Groups & Columns ── -->
+  <div class="card" id="step-1">
+    <h2>Step 1 — Year Groups &amp; Period Columns</h2>
+    <p class="step-desc">
+      Set up basic timetable settings, define your year groups (e.g. S3, S4, S5) and fill in
+      which column letter each day/period corresponds to for that year group.  Not all year
+      groups share the same column at the same time, so each has its own mapping.
+    </p>
+
     <div class="settings-row">
       <div class="field-group">
         <label>Timetable Name</label>
@@ -387,55 +526,75 @@
       </div>
       <div class="field-group">
         <label>Days per Week</label>
-        <input type="number" id="tt-days" min="1" max="7" style="width:70px" />
+        <input type="number" id="tt-days" min="1" max="7" style="width:70px"
+          onchange="onSettingsChange()" />
       </div>
       <div class="field-group">
         <label>Periods per Day</label>
-        <input type="number" id="tt-periods" min="1" max="20" style="width:70px" />
+        <input type="number" id="tt-periods" min="1" max="20" style="width:70px"
+          onchange="onSettingsChange()" />
       </div>
     </div>
 
-    <!-- Teachers / Rooms / Columns -->
-    <div class="three-cols">
-
-      <div class="form-section">
-        <h3>Teachers</h3>
-        <div id="teachers-container"></div>
-        <button class="btn-add-item" onclick="addTeacher()">+ Add Teacher</button>
-      </div>
-
-      <div class="form-section">
-        <h3>Rooms</h3>
-        <div id="rooms-container"></div>
-        <button class="btn-add-item" onclick="addRoom()">+ Add Room</button>
-      </div>
-
-      <div class="form-section">
-        <h3>Columns <span style="font-weight:400;font-size:.75rem;color:#718096;text-transform:none;letter-spacing:0">(option blocks)</span></h3>
-        <div id="columns-container"></div>
-        <button class="btn-add-item" onclick="addColumn()">+ Add Column</button>
-      </div>
-
+    <div class="form-section">
+      <h3>Year Groups</h3>
+      <div id="yeargroups-container"></div>
+      <button class="btn-add-item" onclick="addYearGroup()">+ Add Year Group</button>
     </div>
 
-    <!-- Subjects -->
-    <div class="form-section" style="margin-bottom:1rem">
-      <h3>Subjects</h3>
-      <div id="subjects-container"></div>
-      <button class="btn-add-item" onclick="addSubject()">+ Add Subject</button>
+    <div class="step-nav">
+      <button id="btn-reset">&#8634; Reset to Example</button>
+      <button class="btn-next" onclick="goToStep(2)" style="margin-left:auto">Next: Teachers &#9658;</button>
+    </div>
+  </div>
+
+  <!-- ── Step 2: Teachers ── -->
+  <div class="card hidden" id="step-2">
+    <h2>Step 2 — Teachers</h2>
+    <p class="step-desc">
+      Enter each teacher's name, their non-contact entitlement (number of free periods per week),
+      and any specific periods when they are unavailable.
+    </p>
+
+    <div class="form-section">
+      <h3>Teachers</h3>
+      <div id="teachers-container"></div>
+      <button class="btn-add-item" onclick="addTeacher()">+ Add Teacher</button>
     </div>
 
-    <div class="actions">
-      <button id="btn-schedule">⚡ Generate Timetable</button>
-      <button id="btn-reset">↺ Reset to Example</button>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(1)">&#9668; Previous</button>
+      <button class="btn-next" onclick="goToStep(3)" style="margin-left:auto">Next: Classes &#9658;</button>
+    </div>
+  </div>
+
+  <!-- ── Step 3: Classes ── -->
+  <div class="card hidden" id="step-3">
+    <h2>Step 3 — Classes</h2>
+    <p class="step-desc">
+      Enter each class to be scheduled.  If a class has multiple sections they are split
+      automatically — e.g. S4, Column E, 2 sections produces codes
+      <strong>S4E1</strong> and <strong>S4E2</strong>.  Optionally pin a teacher to a class
+      to override all scheduling rules (that teacher will always be assigned).
+    </p>
+
+    <div class="form-section">
+      <h3>Classes</h3>
+      <div id="classes-container"></div>
+      <button class="btn-add-item" onclick="addClass()">+ Add Class</button>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(2)">&#9668; Previous</button>
+      <button id="btn-schedule" style="margin-left:auto">&#9889; Generate Timetable</button>
     </div>
     <p id="status"></p>
   </div>
 
-  <!-- Results -->
+  <!-- ── Results ── -->
   <div class="card" id="results">
     <div id="placeholder">
-      Fill in the configuration above and click <strong>Generate Timetable</strong> to see results.
+      Complete all three steps above and click <strong>Generate Timetable</strong> to see results.
     </div>
     <div id="output" class="hidden">
       <div class="result-grid" id="stats"></div>
@@ -456,7 +615,7 @@
             <thead>
               <tr>
                 <th>Day</th><th>Period</th><th>Column</th>
-                <th>Subject</th><th>Teacher</th><th>Room</th>
+                <th>Class</th><th>Teacher</th><th>Room</th>
               </tr>
             </thead>
             <tbody id="sessions-body"></tbody>
@@ -467,7 +626,7 @@
       <div class="tab-panel" id="tab-conflicts">
         <ul class="conflict-list" id="conflict-list"></ul>
         <p id="no-conflicts" style="color:#38a169;font-size:.85rem;" class="hidden">
-          ✅ No conflicts found.
+          &#10003; No conflicts found.
         </p>
       </div>
     </div>
@@ -477,256 +636,283 @@
 <script>
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
-// ── State ────────────────────────────────────────────────────────────────────
-// Each section is an array of plain objects that mirror the JSON schema.
-let s = { name: "", days_per_week: 5, periods_per_day: 6, teachers: [], rooms: [], columns: [], subjects: [] };
+// ── State ──
+// year_groups: [{name: "S3", period_map: {day: {period: colLetter}}}]
+// teachers:    [{name: "", non_contact: 0, unavailable: []}]
+// classes:     [{year_group:"", subject:"", level:"", column:"", sections:1, pinned_teacher:null, periods_per_week:1}]
+let s = { name: "", days_per_week: 5, periods_per_day: 6, year_groups: [], teachers: [], classes: [] };
 
-// Scoped helper registry — avoids polluting the global window object.
-const _h = {};
+let currentStep = 1;
+const _h = {};  // scoped helper registry
 
+// ── Example ──
 const EXAMPLE = {
-  name: "Example School Timetable",
+  name: "Trinity Physics Timetable",
   days_per_week: 5,
   periods_per_day: 6,
+  year_groups: [
+    {
+      name: "S3",
+      period_map: {
+        1:{1:"A",2:"B",3:"C",4:"D",5:"E",6:"F"},
+        2:{1:"B",2:"C",3:"D",4:"E",5:"F",6:"A"},
+        3:{1:"C",2:"D",3:"E",4:"F",5:"A",6:"B"},
+        4:{1:"D",2:"E",3:"F",4:"A",5:"B",6:"C"},
+        5:{1:"E",2:"F",3:"A",4:"B",5:"C",6:"D"},
+      }
+    },
+    {
+      name: "S4",
+      period_map: {
+        1:{1:"C",2:"D",3:"A",4:"B",5:"E",6:"F"},
+        2:{1:"D",2:"E",3:"B",4:"C",5:"F",6:"A"},
+        3:{1:"E",2:"F",3:"C",4:"D",5:"A",6:"B"},
+        4:{1:"F",2:"A",3:"D",4:"E",5:"B",6:"C"},
+        5:{1:"A",2:"B",3:"E",4:"F",5:"C",6:"D"},
+      }
+    },
+    {
+      name: "S5",
+      period_map: {
+        1:{1:"E",2:"A",3:"B",4:"C",5:"D",6:"F"},
+        2:{1:"F",2:"B",3:"C",4:"D",5:"E",6:"A"},
+        3:{1:"A",2:"C",3:"D",4:"E",5:"F",6:"B"},
+        4:{1:"B",2:"D",3:"E",4:"F",5:"A",6:"C"},
+        5:{1:"C",2:"E",3:"F",4:"A",5:"B",6:"D"},
+      }
+    },
+  ],
   teachers: [
-    { name: "Ms. Smith",  unavailable: [] },
-    { name: "Mr. Jones",  unavailable: [[1,1]] },
-    { name: "Mrs. Brown", unavailable: [] },
-    { name: "Mr. Davis",  unavailable: [[5,6]] }
+    { name: "Ms. Smith",  non_contact: 2, unavailable: [] },
+    { name: "Mr. Jones",  non_contact: 2, unavailable: [[1,1]] },
+    { name: "Mrs. Brown", non_contact: 1, unavailable: [] },
   ],
-  rooms: [
-    { name: "Room 101",    capacity: 30 },
-    { name: "Room 102",    capacity: 30 },
-    { name: "Science Lab", capacity: 25 },
-    { name: "Art Room",    capacity: 20 }
+  classes: [
+    { year_group:"S4", subject:"Physics",     level:"Higher",          column:"E", sections:2, pinned_teacher:"Ms. Smith",  periods_per_week:4 },
+    { year_group:"S4", subject:"Electronics", level:"National 5",      column:"E", sections:1, pinned_teacher:"Mr. Jones",  periods_per_week:3 },
+    { year_group:"S5", subject:"Physics",     level:"Advanced Higher", column:"A", sections:1, pinned_teacher:"Ms. Smith",  periods_per_week:3 },
+    { year_group:"S3", subject:"Physics",     level:"National 5",      column:"B", sections:2, pinned_teacher:"Mrs. Brown", periods_per_week:4 },
   ],
-  columns: [
-    { name: "Column A", unavailable: [] },
-    { name: "Column B", unavailable: [[3,1]] },
-    { name: "Column C", unavailable: [] }
-  ],
-  subjects: [
-    { name: "Mathematics", column: "Column A", teacher: "Ms. Smith",  periods_per_week: 4, room: "Room 101",    preferred_periods: [[1,2],[2,2],[3,2],[4,2]] },
-    { name: "Biology",     column: "Column A", teacher: "Mr. Jones",  periods_per_week: 4, room: "Science Lab", preferred_periods: [] },
-    { name: "Art",         column: "Column A", teacher: "Mrs. Brown", periods_per_week: 2, room: "Art Room",    preferred_periods: [] },
-    { name: "History",     column: "Column B", teacher: "Mr. Davis",  periods_per_week: 3, room: "Room 102",    preferred_periods: [] },
-    { name: "Geography",   column: "Column B", teacher: "Mrs. Brown", periods_per_week: 3, room: "Room 101",    preferred_periods: [] },
-    { name: "French",      column: "Column C", teacher: "Ms. Smith",  periods_per_week: 3, room: "Room 102",    preferred_periods: [] },
-    { name: "German",      column: "Column C", teacher: "Mr. Jones",  periods_per_week: 3, room: "Room 101",    preferred_periods: [] }
-  ]
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ──
 function esc(v) {
   return String(v)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function getClassCodes(cls) {
+  if (!cls.year_group || !cls.column) return [];
+  const n = parseInt(cls.sections) || 1;
+  if (n <= 1) return [cls.year_group + cls.column];
+  const arr = [];
+  for (let i = 1; i <= n; i++) arr.push(cls.year_group + cls.column + i);
+  return arr;
+}
+
+function serializePeriodMap(pm) {
+  const out = [];
+  for (const d in pm) {
+    for (const p in pm[d]) {
+      const col = (pm[d][p] || "").trim().toUpperCase();
+      if (col) out.push([parseInt(d), parseInt(p), col]);
+    }
+  }
+  return out;
 }
 
 function slotChipsHtml(slots, removeFn) {
   return slots.map((sl, j) =>
-    `<span class="chip">D${sl[0]} P${sl[1]}<button class="chip-btn" onclick="_h['${removeFn}'](${j})" title="Remove">×</button></span>`
+    '<span class="chip">D' + sl[0] + ' P' + sl[1] +
+    '<button class="chip-btn" onclick="_h[\'' + removeFn + '\'](' + j + ')" title="Remove">\xd7</button></span>'
   ).join("");
 }
 
 function slotAddRowHtml(dayId, perId, addFn) {
-  return `<span class="slot-add-row">
-    Day <input type="number" min="1" id="${dayId}" style="width:44px" placeholder="1" />
-    Per <input type="number" min="1" id="${perId}" style="width:44px" placeholder="1" />
-    <button class="btn-add-slot" onclick="_h['${addFn}']()" >+</button>
-  </span>`;
+  return '<span class="slot-add-row">Day <input type="number" min="1" id="' + dayId +
+    '" style="width:44px" placeholder="1" /> Per <input type="number" min="1" id="' + perId +
+    '" style="width:44px" placeholder="1" /> <button class="btn-add-slot" onclick="_h[\'' +
+    addFn + '\']()">+</button></span>';
 }
 
-// ── Render: Teachers ──────────────────────────────────────────────────────────
+// ── Step navigation ──
+function goToStep(n) {
+  [1,2,3].forEach(i => {
+    const panel = document.getElementById("step-" + i);
+    const ind   = document.getElementById("step-indicator-" + i);
+    if (i === n) {
+      panel.classList.remove("hidden");
+      ind.classList.add("active");
+      ind.classList.remove("done");
+    } else {
+      panel.classList.add("hidden");
+      ind.classList.remove("active");
+      if (i < n) ind.classList.add("done"); else ind.classList.remove("done");
+    }
+  });
+  currentStep = n;
+}
+
+// ── Render: Year Groups ──
+function renderYearGroups() {
+  const c = document.getElementById("yeargroups-container");
+  c.innerHTML = "";
+  const days    = Math.max(1, parseInt(document.getElementById("tt-days").value) || 5);
+  const periods = Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6);
+
+  s.year_groups.forEach((yg, i) => {
+    const div = document.createElement("div");
+    div.className = "item-row yg-row";
+
+    let gridHtml = '<div style="overflow-x:auto"><table class="period-grid"><thead><tr><th>Period \\ Day</th>';
+    for (let d = 1; d <= days; d++) {
+      gridHtml += "<th>" + (DAY_NAMES[d-1] || "Day " + d) + "</th>";
+    }
+    gridHtml += "</tr></thead><tbody>";
+    for (let p = 1; p <= periods; p++) {
+      gridHtml += "<tr><td class=\"period-label\">P" + p + "</td>";
+      for (let d = 1; d <= days; d++) {
+        const val = (yg.period_map[d] && yg.period_map[d][p]) ? yg.period_map[d][p] : "";
+        gridHtml += '<td><input type="text" class="col-input" maxlength="10"' +
+          ' id="yg' + i + '-d' + d + '-p' + p + '"' +
+          ' value="' + esc(val) + '"' +
+          ' oninput="setYGCell(' + i + ',' + d + ',' + p + ',this.value)"' +
+          ' placeholder="\u2014" /></td>';
+      }
+      gridHtml += "</tr>";
+    }
+    gridHtml += "</tbody></table></div>";
+
+    div.innerHTML =
+      '<div style="width:100%">' +
+      '<div class="yg-header">' +
+      '<div class="field-group"><label>Year Group Name</label>' +
+      '<input type="text" value="' + esc(yg.name) + '" style="width:90px"' +
+      ' onchange="s.year_groups[' + i + '].name=this.value; renderClasses()" /></div>' +
+      '<button class="btn-delete" onclick="s.year_groups.splice(' + i + ',1); renderYearGroups(); renderClasses()"' +
+      ' title="Remove year group" style="margin-left:auto">\u2715 Remove</button>' +
+      '</div>' + gridHtml + '</div>';
+    c.appendChild(div);
+  });
+}
+
+function setYGCell(ygIdx, day, period, value) {
+  if (!s.year_groups[ygIdx].period_map[day]) s.year_groups[ygIdx].period_map[day] = {};
+  s.year_groups[ygIdx].period_map[day][period] = value.toUpperCase().trim();
+}
+
+function addYearGroup() {
+  s.year_groups.push({ name: "", period_map: {} });
+  renderYearGroups();
+}
+
+function onSettingsChange() {
+  s.days_per_week   = Math.max(1, parseInt(document.getElementById("tt-days").value) || 5);
+  s.periods_per_day = Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6);
+  renderYearGroups();
+}
+
+// ── Render: Teachers ──
 function renderTeachers() {
   const c = document.getElementById("teachers-container");
   c.innerHTML = "";
   s.teachers.forEach((t, i) => {
     const div = document.createElement("div");
     div.className = "item-row";
-    div.innerHTML = `
-      <div class="field-group">
-        <label>Name</label>
-        <input type="text" value="${esc(t.name)}"
-          onchange="s.teachers[${i}].name=this.value; renderSubjects()" />
-      </div>
-      <div class="field-group" style="flex:1;min-width:0">
-        <label>Unavailable Slots</label>
-        <div class="slot-chips" id="t${i}-chips">
-          ${slotChipsHtml(t.unavailable, `_rmTSlot${i}`)}
-          ${slotAddRowHtml(`t${i}-ad`, `t${i}-ap`, `_addTSlot${i}`)}
-        </div>
-      </div>
-      <button class="btn-delete" onclick="s.teachers.splice(${i},1); renderAll()" title="Remove teacher">✕</button>`;
+    div.innerHTML =
+      '<div class="field-group"><label>Name</label>' +
+      '<input type="text" value="' + esc(t.name) + '"' +
+      ' onchange="s.teachers[' + i + '].name=this.value; renderClasses()" /></div>' +
+      '<div class="field-group"><label>Non-Contact Periods / Week</label>' +
+      '<input type="number" value="' + (t.non_contact || 0) + '" min="0" style="width:68px"' +
+      ' onchange="s.teachers[' + i + '].non_contact=parseInt(this.value)||0" /></div>' +
+      '<div class="field-group" style="flex:1;min-width:0"><label>Unavailable Slots</label>' +
+      '<div class="slot-chips" id="t' + i + '-chips">' +
+      slotChipsHtml(t.unavailable, "_rmTSlot" + i) +
+      slotAddRowHtml("t" + i + "-ad", "t" + i + "-ap", "_addTSlot" + i) +
+      '</div></div>' +
+      '<button class="btn-delete" onclick="s.teachers.splice(' + i + ',1); renderAll()" title="Remove teacher">\u2715</button>';
     c.appendChild(div);
-    // Attach scoped slot helpers after element is in DOM
-    _h[`_addTSlot${i}`] = () => {
-      const d = parseInt(document.getElementById(`t${i}-ad`).value);
-      const p = parseInt(document.getElementById(`t${i}-ap`).value);
+    _h["_addTSlot" + i] = () => {
+      const d = parseInt(document.getElementById("t" + i + "-ad").value);
+      const p = parseInt(document.getElementById("t" + i + "-ap").value);
       if (d >= 1 && p >= 1) { s.teachers[i].unavailable.push([d, p]); renderTeachers(); }
     };
-    _h[`_rmTSlot${i}`] = (j) => { s.teachers[i].unavailable.splice(j, 1); renderTeachers(); };
+    _h["_rmTSlot" + i] = (j) => { s.teachers[i].unavailable.splice(j, 1); renderTeachers(); };
   });
 }
 
 function addTeacher() {
-  s.teachers.push({ name: "", unavailable: [] });
+  s.teachers.push({ name: "", non_contact: 0, unavailable: [] });
   renderTeachers();
-  renderSubjects();
+  renderClasses();
 }
 
-// ── Render: Rooms ─────────────────────────────────────────────────────────────
-function renderRooms() {
-  const c = document.getElementById("rooms-container");
+// ── Render: Classes ──
+function renderClasses() {
+  const c = document.getElementById("classes-container");
   c.innerHTML = "";
-  s.rooms.forEach((r, i) => {
+
+  const ygOpts = s.year_groups.map(yg =>
+    '<option value="' + esc(yg.name) + '">' + esc(yg.name) + "</option>"
+  ).join("");
+
+  const teacherOpts = '<option value="">— none (auto-assign) —</option>' +
+    s.teachers.map(t => '<option value="' + esc(t.name) + '">' + esc(t.name) + "</option>").join("");
+
+  s.classes.forEach((cls, i) => {
     const div = document.createElement("div");
     div.className = "item-row";
-    div.innerHTML = `
-      <div class="field-group">
-        <label>Name</label>
-        <input type="text" value="${esc(r.name)}"
-          onchange="s.rooms[${i}].name=this.value; renderSubjects()" />
-      </div>
-      <div class="field-group">
-        <label>Capacity</label>
-        <input type="number" value="${r.capacity}" min="1" style="width:68px"
-          onchange="s.rooms[${i}].capacity=parseInt(this.value)||30" />
-      </div>
-      <button class="btn-delete" onclick="s.rooms.splice(${i},1); renderAll()" title="Remove room">✕</button>`;
+
+    const codes = getClassCodes(cls);
+    const codeHtml = codes.length > 0
+      ? codes.map(cd => '<span class="code-badge">' + esc(cd) + "</span>").join(" ")
+      : '<span style="color:#a0aec0;font-size:.75rem">—</span>';
+
+    div.innerHTML =
+      '<div class="class-row-fields">' +
+      '<div class="field-group"><label>Year Group</label>' +
+      '<select id="cls' + i + '-yg" onchange="s.classes[' + i + '].year_group=this.value; renderClasses()">' +
+      '<option value="">— select —</option>' + ygOpts + '</select></div>' +
+      '<div class="field-group"><label>Subject</label>' +
+      '<input type="text" value="' + esc(cls.subject) + '"' +
+      ' onchange="s.classes[' + i + '].subject=this.value" /></div>' +
+      '<div class="field-group"><label>Level</label>' +
+      '<input type="text" value="' + esc(cls.level) + '" placeholder="e.g. Higher" style="width:110px"' +
+      ' onchange="s.classes[' + i + '].level=this.value" /></div>' +
+      '<div class="field-group"><label>Column</label>' +
+      '<input type="text" value="' + esc(cls.column) + '" placeholder="e.g. E" style="width:56px" maxlength="10"' +
+      ' oninput="s.classes[' + i + '].column=this.value.toUpperCase().trim(); renderClasses()" /></div>' +
+      '<div class="field-group"><label>Sections</label>' +
+      '<input type="number" value="' + (cls.sections || 1) + '" min="1" max="20" style="width:56px"' +
+      ' onchange="s.classes[' + i + '].sections=parseInt(this.value)||1; renderClasses()" /></div>' +
+      '<div class="field-group"><label>Periods / Week</label>' +
+      '<input type="number" value="' + (cls.periods_per_week || 1) + '" min="1" style="width:56px"' +
+      ' onchange="s.classes[' + i + '].periods_per_week=parseInt(this.value)||1" /></div>' +
+      '<div class="field-group"><label>Pinned Teacher <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — overrides all rules)</span></label>' +
+      '<select id="cls' + i + '-tch" onchange="s.classes[' + i + '].pinned_teacher=this.value||null">' +
+      teacherOpts + '</select></div>' +
+      '<div class="field-group" style="min-width:80px"><label>Code(s)</label>' +
+      '<div style="padding:.25rem 0;display:flex;gap:.25rem;flex-wrap:wrap">' + codeHtml + '</div></div>' +
+      '</div>' +
+      '<button class="btn-delete" onclick="s.classes.splice(' + i + ',1); renderClasses()" title="Remove class">\u2715</button>';
+
     c.appendChild(div);
+    document.getElementById("cls" + i + "-yg").value  = cls.year_group || "";
+    document.getElementById("cls" + i + "-tch").value = cls.pinned_teacher || "";
   });
 }
 
-function addRoom() {
-  s.rooms.push({ name: "", capacity: 30 });
-  renderRooms();
-  renderSubjects();
+function addClass() {
+  s.classes.push({ year_group:"", subject:"", level:"", column:"", sections:1, pinned_teacher:null, periods_per_week:1 });
+  renderClasses();
 }
 
-// ── Render: Columns ───────────────────────────────────────────────────────────
-function renderColumns() {
-  const c = document.getElementById("columns-container");
-  c.innerHTML = "";
-  s.columns.forEach((col, i) => {
-    const div = document.createElement("div");
-    div.className = "item-row";
-    div.innerHTML = `
-      <div class="field-group">
-        <label>Name</label>
-        <input type="text" value="${esc(col.name)}"
-          onchange="s.columns[${i}].name=this.value; renderSubjects()" />
-      </div>
-      <div class="field-group" style="flex:1;min-width:0">
-        <label>Unavailable Slots</label>
-        <div class="slot-chips" id="c${i}-chips">
-          ${slotChipsHtml(col.unavailable, `_rmCSlot${i}`)}
-          ${slotAddRowHtml(`c${i}-ad`, `c${i}-ap`, `_addCSlot${i}`)}
-        </div>
-      </div>
-      <button class="btn-delete" onclick="s.columns.splice(${i},1); renderAll()" title="Remove column">✕</button>`;
-    c.appendChild(div);
-    _h[`_addCSlot${i}`] = () => {
-      const d = parseInt(document.getElementById(`c${i}-ad`).value);
-      const p = parseInt(document.getElementById(`c${i}-ap`).value);
-      if (d >= 1 && p >= 1) { s.columns[i].unavailable.push([d, p]); renderColumns(); }
-    };
-    _h[`_rmCSlot${i}`] = (j) => { s.columns[i].unavailable.splice(j, 1); renderColumns(); };
-  });
-}
+// ── Render all ──
+function renderAll() { renderYearGroups(); renderTeachers(); renderClasses(); }
 
-function addColumn() {
-  s.columns.push({ name: "", unavailable: [] });
-  renderColumns();
-  renderSubjects();
-}
-
-// ── Render: Subjects ──────────────────────────────────────────────────────────
-function renderSubjects() {
-  const c = document.getElementById("subjects-container");
-  c.innerHTML = "";
-
-  const teacherOpts = s.teachers.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join("");
-  const columnOpts  = s.columns.map(col => `<option value="${esc(col.name)}">${esc(col.name)}</option>`).join("");
-  const roomOpts    = `<option value="">— none —</option>` +
-    s.rooms.map(r => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join("");
-
-  s.subjects.forEach((sub, i) => {
-    const div = document.createElement("div");
-    div.className = "item-row";
-    div.innerHTML = `
-      <div class="subject-row-fields">
-        <div class="field-group">
-          <label>Subject Name</label>
-          <input type="text" value="${esc(sub.name)}"
-            onchange="s.subjects[${i}].name=this.value" />
-        </div>
-        <div class="field-group">
-          <label>Column</label>
-          <select id="sub${i}-col" onchange="s.subjects[${i}].column=this.value">
-            <option value="">— select —</option>
-            ${columnOpts}
-          </select>
-        </div>
-        <div class="field-group">
-          <label>Teacher</label>
-          <select id="sub${i}-tch" onchange="s.subjects[${i}].teacher=this.value">
-            <option value="">— select —</option>
-            ${teacherOpts}
-          </select>
-        </div>
-        <div class="field-group">
-          <label>Periods / Week</label>
-          <input type="number" value="${sub.periods_per_week}" min="1" style="width:64px"
-            onchange="s.subjects[${i}].periods_per_week=parseInt(this.value)||1" />
-        </div>
-        <div class="field-group">
-          <label>Room (optional)</label>
-          <select id="sub${i}-rm" onchange="s.subjects[${i}].room=this.value ? this.value : null">
-            ${roomOpts}
-          </select>
-        </div>
-        <div class="field-group" style="flex:1;min-width:160px">
-          <label>Preferred Periods</label>
-          <div class="slot-chips" id="sub${i}-chips">
-            ${slotChipsHtml(sub.preferred_periods, `_rmSSlot${i}`)}
-            ${slotAddRowHtml(`sub${i}-ad`, `sub${i}-ap`, `_addSSlot${i}`)}
-          </div>
-        </div>
-      </div>
-      <button class="btn-delete" onclick="s.subjects.splice(${i},1); renderSubjects()" title="Remove subject">✕</button>`;
-    c.appendChild(div);
-
-    // Set dropdown values (must be done after innerHTML assignment)
-    document.getElementById(`sub${i}-col`).value = sub.column || "";
-    document.getElementById(`sub${i}-tch`).value = sub.teacher || "";
-    document.getElementById(`sub${i}-rm`).value  = sub.room || "";
-
-    _h[`_addSSlot${i}`] = () => {
-      const d = parseInt(document.getElementById(`sub${i}-ad`).value);
-      const p = parseInt(document.getElementById(`sub${i}-ap`).value);
-      if (d >= 1 && p >= 1) { s.subjects[i].preferred_periods.push([d, p]); renderSubjects(); }
-    };
-    _h[`_rmSSlot${i}`] = (j) => { s.subjects[i].preferred_periods.splice(j, 1); renderSubjects(); };
-  });
-}
-
-function addSubject() {
-  s.subjects.push({ name: "", column: "", teacher: "", periods_per_week: 1, room: null, preferred_periods: [] });
-  renderSubjects();
-}
-
-// ── Render all sections ───────────────────────────────────────────────────────
-function renderAll() {
-  renderTeachers();
-  renderRooms();
-  renderColumns();
-  renderSubjects();
-}
-
-// ── Load example ──────────────────────────────────────────────────────────────
+// ── Load example ──
 function loadExample() {
   s = JSON.parse(JSON.stringify(EXAMPLE));
   document.getElementById("tt-name").value    = s.name;
@@ -735,30 +921,59 @@ function loadExample() {
   renderAll();
 }
 
-// ── Build config object from current state ────────────────────────────────────
+// ── Build config for API ──
 function buildConfig() {
+  const days    = Math.max(1, parseInt(document.getElementById("tt-days").value)    || 5);
+  const periods = Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6);
+
+  // Collect unique column names
+  const colSet = new Set();
+  s.year_groups.forEach(yg => {
+    for (const d in yg.period_map) {
+      for (const p in yg.period_map[d]) {
+        const col = (yg.period_map[d][p] || "").trim().toUpperCase();
+        if (col) colSet.add(col);
+      }
+    }
+  });
+  s.classes.forEach(cls => { if (cls.column && cls.column.trim()) colSet.add(cls.column.trim().toUpperCase()); });
+  const columns = [...colSet].sort().map(name => ({ name, unavailable: [] }));
+
+  // Expand classes to subjects
+  const subjects = [];
+  s.classes.forEach(cls => {
+    getClassCodes(cls).forEach(code => {
+      subjects.push({
+        name: code,
+        column: (cls.column || "").toUpperCase().trim(),
+        teacher: cls.pinned_teacher || "",
+        periods_per_week: parseInt(cls.periods_per_week) || 1,
+      });
+    });
+  });
+
   return {
-    name:            document.getElementById("tt-name").value.trim() || "Timetable",
-    days_per_week:   Math.max(1, parseInt(document.getElementById("tt-days").value)    || 5),
-    periods_per_day: Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6),
-    teachers: s.teachers.map(t => ({ name: t.name, unavailable: t.unavailable })),
-    rooms:    s.rooms.map(r    => ({ name: r.name, capacity: r.capacity })),
-    columns:  s.columns.map(c  => ({ name: c.name, unavailable: c.unavailable })),
-    subjects: s.subjects.map(sub => {
-      const obj = {
-        name: sub.name,
-        column: sub.column,
-        teacher: sub.teacher,
-        periods_per_week: sub.periods_per_week,
-      };
-      if (sub.room) obj.room = sub.room;
-      if (sub.preferred_periods && sub.preferred_periods.length) obj.preferred_periods = sub.preferred_periods;
-      return obj;
-    }),
+    name: document.getElementById("tt-name").value.trim() || "Timetable",
+    days_per_week: days,
+    periods_per_day: periods,
+    year_groups: s.year_groups.map(yg => ({ name: yg.name, period_map: serializePeriodMap(yg.period_map) })),
+    teachers: s.teachers.map(t => ({ name: t.name, non_contact_entitlement: parseInt(t.non_contact)||0, unavailable: t.unavailable })),
+    columns,
+    subjects,
+    rooms: [],
+    classes: s.classes.map(cls => ({
+      year_group: cls.year_group,
+      subject: cls.subject,
+      level: cls.level,
+      column: (cls.column || "").toUpperCase().trim(),
+      sections: parseInt(cls.sections) || 1,
+      pinned_teacher: cls.pinned_teacher || null,
+      periods_per_week: parseInt(cls.periods_per_week) || 1,
+    })),
   };
 }
 
-// ── UI wiring ─────────────────────────────────────────────────────────────────
+// ── UI wiring ──
 const btnSchedule = document.getElementById("btn-schedule");
 const btnReset    = document.getElementById("btn-reset");
 const status      = document.getElementById("status");
@@ -766,13 +981,14 @@ const placeholder = document.getElementById("placeholder");
 const output      = document.getElementById("output");
 
 loadExample();
+goToStep(1);
 
-btnReset.addEventListener("click", () => { loadExample(); clearOutput(); });
+btnReset.addEventListener("click", () => { loadExample(); goToStep(1); clearOutput(); });
 
 function clearOutput() {
   output.classList.add("hidden");
   placeholder.classList.remove("hidden");
-  setStatus("", "");
+  setStatus("","");
 }
 
 function setStatus(msg, type) {
@@ -780,7 +996,6 @@ function setStatus(msg, type) {
   status.className = type || "";
 }
 
-// --- Tabs ---
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -790,13 +1005,10 @@ document.querySelectorAll(".tab").forEach(tab => {
   });
 });
 
-// --- Schedule ---
 btnSchedule.addEventListener("click", async () => {
   const data = buildConfig();
-
   btnSchedule.disabled = true;
-  setStatus("Scheduling…", "");
-
+  setStatus("Scheduling\u2026", "");
   try {
     const resp = await fetch("/api/schedule", {
       method: "POST",
@@ -804,16 +1016,15 @@ btnSchedule.addEventListener("click", async () => {
       body: JSON.stringify(data),
     });
     const json = await resp.json();
-
     if (!resp.ok) {
       const msg = json.error || "Unknown error";
-      const details = json.details ? "\n• " + json.details.join("\n• ") : "";
+      const details = json.details ? "\n\u2022 " + json.details.join("\n\u2022 ") : "";
       setStatus(msg + details, "error");
       return;
     }
-
     renderResults(json, data);
-    setStatus("Done ✓", "ok");
+    setStatus("Done \u2713", "ok");
+    document.getElementById("results").scrollIntoView({ behavior: "smooth" });
   } catch (e) {
     setStatus("Network error: " + e.message, "error");
   } finally {
@@ -821,59 +1032,42 @@ btnSchedule.addEventListener("click", async () => {
   }
 });
 
-// ── Results rendering (unchanged) ─────────────────────────────────────────────
+// ── Results rendering ──
 function renderResults(result, cfg) {
   placeholder.classList.add("hidden");
   output.classList.remove("hidden");
-
-  // Reset to timetable tab
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
   document.querySelector('[data-tab="timetable"]').classList.add("active");
   document.getElementById("tab-timetable").classList.add("active");
 
-  // Stats
   const hard = result.conflicts.filter(c => c.severity === "hard").length;
   const soft = result.conflicts.filter(c => c.severity === "soft").length;
-  document.getElementById("stats").innerHTML = `
-    <div class="stat-box">
-      <div class="label">Sessions placed</div>
-      <div class="value">${result.sessions.length}</div>
-    </div>
-    <div class="stat-box">
-      <div class="label">Hard conflicts</div>
-      <div class="value" style="color:${hard ? '#e53e3e' : '#38a169'}">${hard}</div>
-    </div>
-    <div class="stat-box">
-      <div class="label">Soft warnings</div>
-      <div class="value" style="color:${soft ? '#d69e2e' : '#38a169'}">${soft}</div>
-    </div>
-    <div class="stat-box">
-      <div class="label">Timetable</div>
-      <div class="value" style="font-size:1rem;padding-top:.25rem">${esc(result.timetable.name)}</div>
-    </div>
-  `;
+  document.getElementById("stats").innerHTML =
+    '<div class="stat-box"><div class="label">Sessions placed</div><div class="value">' + result.sessions.length + "</div></div>" +
+    '<div class="stat-box"><div class="label">Hard conflicts</div>' +
+    '<div class="value" style="color:' + (hard ? "#e53e3e" : "#38a169") + '">' + hard + "</div></div>" +
+    '<div class="stat-box"><div class="label">Soft warnings</div>' +
+    '<div class="value" style="color:' + (soft ? "#d69e2e" : "#38a169") + '">' + soft + "</div></div>" +
+    '<div class="stat-box"><div class="label">Timetable</div>' +
+    '<div class="value" style="font-size:1rem;padding-top:.25rem">' + esc(result.timetable.name) + "</div></div>";
 
-  // Timetable grid
   renderGrid(result.sessions, result.timetable.days_per_week, result.timetable.periods_per_day);
 
-  // Sessions table
   const tbody = document.getElementById("sessions-body");
   tbody.innerHTML = "";
-  result.sessions.forEach(s => {
+  result.sessions.forEach(sess => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${DAY_NAMES[s.day - 1] || "Day " + s.day}</td>
-      <td>P${s.period}</td>
-      <td>${esc(s.column)}</td>
-      <td>${esc(s.subject)}</td>
-      <td>${esc(s.teacher)}</td>
-      <td>${esc(s.room)}</td>
-    `;
+    tr.innerHTML =
+      "<td>" + (DAY_NAMES[sess.day-1] || "Day "+sess.day) + "</td>" +
+      "<td>P" + sess.period + "</td>" +
+      "<td>" + esc(sess.column) + "</td>" +
+      "<td>" + esc(sess.subject) + "</td>" +
+      "<td>" + esc(sess.teacher || "\u2014") + "</td>" +
+      "<td>" + esc(sess.room) + "</td>";
     tbody.appendChild(tr);
   });
 
-  // Conflicts
   const cl = document.getElementById("conflict-list");
   const nc = document.getElementById("no-conflicts");
   cl.innerHTML = "";
@@ -881,16 +1075,18 @@ function renderResults(result, cfg) {
     nc.classList.remove("hidden");
   } else {
     nc.classList.add("hidden");
-    result.conflicts.forEach(c => {
+    result.conflicts.forEach(conf => {
       const li = document.createElement("li");
-      li.className = c.severity;
+      li.className = conf.severity;
       let loc = "";
-      if (c.day != null) {
-        loc = ` [Day ${c.day}`;
-        if (c.period != null) { loc += `, P${c.period}`; }
+      if (conf.day != null) {
+        loc = " [Day " + conf.day;
+        if (conf.period != null) loc += ", P" + conf.period;
         loc += "]";
       }
-      li.innerHTML = `<span class="pill pill-${esc(c.severity)}">${esc(c.severity.toUpperCase())}</span> <strong>${esc(c.category)}</strong>: ${esc(c.description)}${esc(loc)}`;
+      li.innerHTML = '<span class="pill pill-' + esc(conf.severity) + '">' +
+        esc(conf.severity.toUpperCase()) + '</span> <strong>' +
+        esc(conf.category) + "</strong>: " + esc(conf.description) + esc(loc);
       cl.appendChild(li);
     });
   }
@@ -898,47 +1094,40 @@ function renderResults(result, cfg) {
 
 function renderGrid(sessions, daysPerWeek, periodsPerDay) {
   const bySlot = {};
-  sessions.forEach(s => {
-    const key = `${s.day},${s.period}`;
-    (bySlot[key] = bySlot[key] || []).push(s);
+  sessions.forEach(sess => {
+    const key = sess.day + "," + sess.period;
+    (bySlot[key] = bySlot[key] || []).push(sess);
   });
 
   const table = document.createElement("table");
-
-  // Header
   const thead = table.createTHead();
-  const hrow = thead.insertRow();
-  const thPeriod = document.createElement("th");
-  thPeriod.textContent = "";
-  hrow.appendChild(thPeriod);
+  const hrow  = thead.insertRow();
+  const thP   = document.createElement("th");
+  hrow.appendChild(thP);
   for (let d = 1; d <= daysPerWeek; d++) {
     const th = document.createElement("th");
-    th.textContent = DAY_NAMES[d - 1] || `Day ${d}`;
+    th.textContent = DAY_NAMES[d-1] || "Day " + d;
     hrow.appendChild(th);
   }
 
-  // Body
   const tbody = table.createTBody();
   for (let p = 1; p <= periodsPerDay; p++) {
     const tr = tbody.insertRow();
     const tdLabel = tr.insertCell();
-    tdLabel.textContent = `P${p}`;
+    tdLabel.textContent = "P" + p;
     tdLabel.style.fontWeight = "600";
     tdLabel.style.background = "#edf2f7";
-
     for (let d = 1; d <= daysPerWeek; d++) {
-      const td = tr.insertCell();
-      const key = `${d},${p}`;
+      const td    = tr.insertCell();
+      const key   = d + "," + p;
       const items = bySlot[key] || [];
       if (items.length === 0) {
         td.style.color = "#a0aec0";
-        td.textContent = "—";
+        td.textContent = "\u2014";
       } else {
-        td.innerHTML = items.map(s =>
-          `<div style="margin-bottom:.2rem">
-            <strong>${esc(s.subject)}</strong><br/>
-            <span style="color:#718096;font-size:.72rem">${esc(s.teacher)} · ${esc(s.room)}</span>
-          </div>`
+        td.innerHTML = items.map(sess =>
+          '<div style="margin-bottom:.2rem"><strong>' + esc(sess.subject) + "</strong><br/>" +
+          '<span style="color:#718096;font-size:.72rem">' + esc(sess.teacher || "\u2014") + " \xb7 " + esc(sess.room) + "</span></div>"
         ).join("");
       }
     }

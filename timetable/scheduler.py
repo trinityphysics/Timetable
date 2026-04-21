@@ -208,14 +208,15 @@ class Scheduler:
                     rooms_at_slot.add(os.room)
 
         for subj in subjects:
-            # Teacher unavailability
-            teacher = self.teacher_map.get(subj.teacher)
-            if teacher and not teacher.is_available(slot):
-                return False
+            # Teacher unavailability (skip if no teacher assigned yet)
+            if subj.teacher:
+                teacher = self.teacher_map.get(subj.teacher)
+                if teacher and not teacher.is_available(slot):
+                    return False
 
-            # Teacher already teaching another column at this slot
-            if subj.teacher in teachers_at_slot:
-                return False
+                # Teacher already teaching another column at this slot
+                if subj.teacher in teachers_at_slot:
+                    return False
 
             # Requested room already taken at this slot
             if subj.room and subj.room in rooms_at_slot:
