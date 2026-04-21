@@ -623,9 +623,9 @@
       If a class has multiple sections each section gets its own code
       (e.g. <strong>S4-P-H-E-1</strong> and <strong>S4-P-H-E-2</strong>).
       Use the per-section teacher dropdowns to assign teachers:
-      leave a section on <em>Any teacher</em> for automatic assignment,
-      or select a specific teacher to pin that section as a hard rule.
-      When every section has a specific teacher the assignment is enforced strictly.
+      leave a section on <em>Any teacher</em> for automatic assignment.
+      A hard rule is applied only when all sections have a specific teacher selected
+      (1 section with 1 teacher, or 2 sections each with a different teacher).
     </p>
 
     <div class="form-section">
@@ -1038,7 +1038,7 @@ function renderClasses() {
     let ruleNote = "";
     if (specific.length === 0) {
       ruleNote = "Any available teacher will be used.";
-    } else if (specific.length === 1) {
+    } else if (n === 1 && specific.length === 1) {
       ruleNote = "\u26a0 Hard: " + esc(specific[0]) + " must teach this class.";
     } else if (specific.length === n && n > 1 && new Set(specific).size === n) {
       ruleNote = "\u26a0 Hard: one teacher per section (1:1 rule).";
