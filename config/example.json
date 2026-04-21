@@ -1,0 +1,89 @@
+{
+  "name": "Example School Timetable",
+  "days_per_week": 5,
+  "periods_per_day": 6,
+
+  "teachers": [
+    { "name": "Ms. Smith",  "unavailable": [] },
+    { "name": "Mr. Jones",  "unavailable": [[1, 1]] },
+    { "name": "Mrs. Brown", "unavailable": [] },
+    { "name": "Mr. Davis",  "unavailable": [[5, 6]] }
+  ],
+
+  "rooms": [
+    { "name": "Room 101",    "capacity": 30 },
+    { "name": "Room 102",    "capacity": 30 },
+    { "name": "Science Lab", "capacity": 25 },
+    { "name": "Art Room",    "capacity": 20 }
+  ],
+
+  "columns": [
+    {
+      "name": "Column A",
+      "unavailable": []
+    },
+    {
+      "name": "Column B",
+      "unavailable": [[3, 1]]
+    },
+    {
+      "name": "Column C",
+      "unavailable": []
+    }
+  ],
+
+  "subjects": [
+    {
+      "name": "Mathematics",
+      "column": "Column A",
+      "teacher": "Ms. Smith",
+      "periods_per_week": 4,
+      "room": "Room 101",
+      "preferred_periods": [[1, 2], [2, 2], [3, 2], [4, 2]]
+    },
+    {
+      "name": "Biology",
+      "column": "Column A",
+      "teacher": "Mr. Jones",
+      "periods_per_week": 4,
+      "room": "Science Lab"
+    },
+    {
+      "name": "Art",
+      "column": "Column A",
+      "teacher": "Mrs. Brown",
+      "periods_per_week": 2,
+      "room": "Art Room"
+    },
+
+    {
+      "name": "History",
+      "column": "Column B",
+      "teacher": "Mr. Davis",
+      "periods_per_week": 3,
+      "room": "Room 102"
+    },
+    {
+      "name": "Geography",
+      "column": "Column B",
+      "teacher": "Mrs. Brown",
+      "periods_per_week": 3,
+      "room": "Room 101"
+    },
+
+    {
+      "name": "French",
+      "column": "Column C",
+      "teacher": "Ms. Smith",
+      "periods_per_week": 3,
+      "room": "Room 102"
+    },
+    {
+      "name": "German",
+      "column": "Column C",
+      "teacher": "Mr. Jones",
+      "periods_per_week": 3,
+      "room": "Room 101"
+    }
+  ]
+}
