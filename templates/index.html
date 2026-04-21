@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timetable Scheduler</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #2d3748;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    header h1 { font-size: 1.35rem; font-weight: 600; }
+    header span { font-size: 1.5rem; }
+
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+      padding: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #2d3748;
+    }
+
+    textarea {
+      width: 100%;
+      height: 420px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-family: "Fira Code", "Courier New", monospace;
+      font-size: 0.78rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s;
+    }
+    textarea:focus { border-color: #4299e1; }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.55rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background .2s, opacity .2s;
+    }
+
+    #btn-schedule {
+      background: #3182ce;
+      color: #fff;
+    }
+    #btn-schedule:hover { background: #2b6cb0; }
+    #btn-schedule:disabled { opacity: .5; cursor: default; }
+
+    #btn-reset {
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    #btn-reset:hover { background: #e2e8f0; }
+
+    #status {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+    }
+    #status.error { color: #e53e3e; }
+    #status.ok    { color: #38a169; }
+
+    /* ---- Results ---- */
+    #results { grid-column: 1 / -1; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-box {
+      background: #ebf8ff;
+      border-left: 4px solid #3182ce;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+    }
+    .stat-box .label { font-size: 0.75rem; color: #4a5568; text-transform: uppercase; letter-spacing: .05em; }
+    .stat-box .value { font-size: 1.5rem; font-weight: 700; color: #2b6cb0; }
+
+    .timetable-wrapper { overflow-x: auto; }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.8rem;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 0.45rem 0.65rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    thead th {
+      background: #2d3748;
+      color: #fff;
+      font-weight: 600;
+    }
+    tbody tr:nth-child(even) { background: #f7fafc; }
+
+    .pill {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .pill-hard { background: #fed7d7; color: #9b2c2c; }
+    .pill-soft { background: #fefcbf; color: #744210; }
+
+    .conflict-list {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+    .conflict-list li {
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      margin-bottom: 0.35rem;
+      font-size: 0.82rem;
+    }
+    .conflict-list li.hard { background: #fff5f5; border-left: 3px solid #fc8181; }
+    .conflict-list li.soft { background: #fffff0; border-left: 3px solid #f6e05e; }
+
+    #placeholder {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #a0aec0;
+      font-size: 0.9rem;
+    }
+
+    .hidden { display: none !important; }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tab {
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+      font-size: 0.85rem;
+      color: #4a5568;
+      border: 2px solid transparent;
+      border-bottom: none;
+      margin-bottom: -2px;
+    }
+    .tab.active {
+      background: #fff;
+      border-color: #e2e8f0;
+      border-bottom-color: #fff;
+      color: #2d3748;
+      font-weight: 600;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>🗓️</span>
+  <h1>Timetable Scheduler</h1>
+</header>
+
+<main>
+  <!-- Left: config editor -->
+  <div class="card">
+    <h2>Configuration (JSON)</h2>
+    <textarea id="config-input" spellcheck="false"></textarea>
+    <div class="actions">
+      <button id="btn-schedule">⚡ Generate Timetable</button>
+      <button id="btn-reset">↺ Reset to Example</button>
+    </div>
+    <p id="status"></p>
+  </div>
+
+  <!-- Right: quick help -->
+  <div class="card">
+    <h2>How to use</h2>
+    <p style="font-size:.85rem;line-height:1.65;color:#4a5568;">
+      Edit the JSON configuration on the left (or use the example), then click
+      <strong>Generate Timetable</strong>.
+    </p>
+    <br/>
+    <p style="font-size:.85rem;line-height:1.65;color:#4a5568;">
+      <strong>Key fields:</strong>
+    </p>
+    <ul style="font-size:.82rem;line-height:1.9;color:#4a5568;padding-left:1.2rem;margin-top:.5rem;">
+      <li><code>days_per_week</code> — number of school days</li>
+      <li><code>periods_per_day</code> — lessons per day</li>
+      <li><code>teachers</code> — list of teachers with optional unavailable slots</li>
+      <li><code>rooms</code> — list of rooms with optional capacity</li>
+      <li><code>columns</code> — option blocks (subjects run in parallel)</li>
+      <li><code>subjects</code> — each subject has a column, teacher, and optional room</li>
+      <li><code>unavailable</code> / <code>preferred_periods</code> — use <code>[day, period]</code> pairs (1-indexed)</li>
+    </ul>
+  </div>
+
+  <!-- Bottom: results (full width) -->
+  <div class="card" id="results">
+    <div id="placeholder">
+      Configure your timetable and click <strong>Generate Timetable</strong> to see results.
+    </div>
+    <div id="output" class="hidden">
+      <div class="result-grid" id="stats"></div>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="timetable">Timetable</div>
+        <div class="tab" data-tab="sessions">All Sessions</div>
+        <div class="tab" data-tab="conflicts">Conflicts</div>
+      </div>
+
+      <div class="tab-panel active" id="tab-timetable">
+        <div class="timetable-wrapper" id="grid-container"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-sessions">
+        <div class="timetable-wrapper">
+          <table id="sessions-table">
+            <thead>
+              <tr>
+                <th>Day</th><th>Period</th><th>Column</th>
+                <th>Subject</th><th>Teacher</th><th>Room</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-conflicts">
+        <ul class="conflict-list" id="conflict-list"></ul>
+        <p id="no-conflicts" style="color:#38a169;font-size:.85rem;" class="hidden">
+          ✅ No conflicts found.
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+const EXAMPLE_CONFIG = {
+  "name": "Example School Timetable",
+  "days_per_week": 5,
+  "periods_per_day": 6,
+  "teachers": [
+    { "name": "Ms. Smith",  "unavailable": [] },
+    { "name": "Mr. Jones",  "unavailable": [[1,1]] },
+    { "name": "Mrs. Brown", "unavailable": [] },
+    { "name": "Mr. Davis",  "unavailable": [[5,6]] }
+  ],
+  "rooms": [
+    { "name": "Room 101",    "capacity": 30 },
+    { "name": "Room 102",    "capacity": 30 },
+    { "name": "Science Lab", "capacity": 25 },
+    { "name": "Art Room",    "capacity": 20 }
+  ],
+  "columns": [
+    { "name": "Column A", "unavailable": [] },
+    { "name": "Column B", "unavailable": [[3,1]] },
+    { "name": "Column C", "unavailable": [] }
+  ],
+  "subjects": [
+    { "name": "Mathematics", "column": "Column A", "teacher": "Ms. Smith",  "periods_per_week": 4, "room": "Room 101",    "preferred_periods": [[1,2],[2,2],[3,2],[4,2]] },
+    { "name": "Biology",     "column": "Column A", "teacher": "Mr. Jones",  "periods_per_week": 4, "room": "Science Lab" },
+    { "name": "Art",         "column": "Column A", "teacher": "Mrs. Brown", "periods_per_week": 2, "room": "Art Room" },
+    { "name": "History",     "column": "Column B", "teacher": "Mr. Davis",  "periods_per_week": 3, "room": "Room 102" },
+    { "name": "Geography",   "column": "Column B", "teacher": "Mrs. Brown", "periods_per_week": 3, "room": "Room 101" },
+    { "name": "French",      "column": "Column C", "teacher": "Ms. Smith",  "periods_per_week": 3, "room": "Room 102" },
+    { "name": "German",      "column": "Column C", "teacher": "Mr. Jones",  "periods_per_week": 3, "room": "Room 101" }
+  ]
+};
+
+const configInput = document.getElementById("config-input");
+const btnSchedule = document.getElementById("btn-schedule");
+const btnReset    = document.getElementById("btn-reset");
+const status      = document.getElementById("status");
+const placeholder = document.getElementById("placeholder");
+const output      = document.getElementById("output");
+
+function setExample() {
+  configInput.value = JSON.stringify(EXAMPLE_CONFIG, null, 2);
+}
+setExample();
+
+btnReset.addEventListener("click", () => { setExample(); clearOutput(); });
+
+function clearOutput() {
+  output.classList.add("hidden");
+  placeholder.classList.remove("hidden");
+  setStatus("", "");
+}
+
+function setStatus(msg, type) {
+  status.textContent = msg;
+  status.className = type || "";
+}
+
+// --- Tabs ---
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+  });
+});
+
+// --- Schedule ---
+btnSchedule.addEventListener("click", async () => {
+  let data;
+  try {
+    data = JSON.parse(configInput.value);
+  } catch (e) {
+    setStatus("Invalid JSON: " + e.message, "error");
+    return;
+  }
+
+  btnSchedule.disabled = true;
+  setStatus("Scheduling…", "");
+
+  try {
+    const resp = await fetch("/api/schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const json = await resp.json();
+
+    if (!resp.ok) {
+      const msg = json.error || "Unknown error";
+      const details = json.details ? "\n• " + json.details.join("\n• ") : "";
+      setStatus(msg + details, "error");
+      return;
+    }
+
+    renderResults(json, data);
+    setStatus("Done ✓", "ok");
+  } catch (e) {
+    setStatus("Network error: " + e.message, "error");
+  } finally {
+    btnSchedule.disabled = false;
+  }
+});
+
+function renderResults(result, cfg) {
+  placeholder.classList.add("hidden");
+  output.classList.remove("hidden");
+
+  // Reset to timetable tab
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelector('[data-tab="timetable"]').classList.add("active");
+  document.getElementById("tab-timetable").classList.add("active");
+
+  // Stats
+  const hard = result.conflicts.filter(c => c.severity === "hard").length;
+  const soft = result.conflicts.filter(c => c.severity === "soft").length;
+  document.getElementById("stats").innerHTML = `
+    <div class="stat-box">
+      <div class="label">Sessions placed</div>
+      <div class="value">${result.sessions.length}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Hard conflicts</div>
+      <div class="value" style="color:${hard ? '#e53e3e' : '#38a169'}">${hard}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Soft warnings</div>
+      <div class="value" style="color:${soft ? '#d69e2e' : '#38a169'}">${soft}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Timetable</div>
+      <div class="value" style="font-size:1rem;padding-top:.25rem">${result.timetable.name}</div>
+    </div>
+  `;
+
+  // Timetable grid
+  renderGrid(result.sessions, result.timetable.days_per_week, result.timetable.periods_per_day);
+
+  // Sessions table
+  const tbody = document.getElementById("sessions-body");
+  tbody.innerHTML = "";
+  result.sessions.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${DAY_NAMES[s.day - 1] || "Day " + s.day}</td>
+      <td>P${s.period}</td>
+      <td>${esc(s.column)}</td>
+      <td>${esc(s.subject)}</td>
+      <td>${esc(s.teacher)}</td>
+      <td>${esc(s.room)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Conflicts
+  const cl = document.getElementById("conflict-list");
+  const nc = document.getElementById("no-conflicts");
+  cl.innerHTML = "";
+  if (result.conflicts.length === 0) {
+    nc.classList.remove("hidden");
+  } else {
+    nc.classList.add("hidden");
+    result.conflicts.forEach(c => {
+      const li = document.createElement("li");
+      li.className = c.severity;
+      const loc = c.day != null ? ` [Day ${c.day}${c.period != null ? ", P" + c.period : ""}]` : "";
+      li.innerHTML = `<span class="pill pill-${c.severity}">${c.severity.toUpperCase()}</span> <strong>${esc(c.category)}</strong>: ${esc(c.description)}${esc(loc)}`;
+      cl.appendChild(li);
+    });
+  }
+}
+
+function renderGrid(sessions, daysPerWeek, periodsPerDay) {
+  // Build slot → sessions map
+  const bySlot = {};
+  sessions.forEach(s => {
+    const key = `${s.day},${s.period}`;
+    (bySlot[key] = bySlot[key] || []).push(s);
+  });
+
+  const table = document.createElement("table");
+
+  // Header
+  const thead = table.createTHead();
+  const hrow = thead.insertRow();
+  const thPeriod = document.createElement("th");
+  thPeriod.textContent = "";
+  hrow.appendChild(thPeriod);
+  for (let d = 1; d <= daysPerWeek; d++) {
+    const th = document.createElement("th");
+    th.textContent = DAY_NAMES[d - 1] || `Day ${d}`;
+    hrow.appendChild(th);
+  }
+
+  // Body
+  const tbody = table.createTBody();
+  for (let p = 1; p <= periodsPerDay; p++) {
+    const tr = tbody.insertRow();
+    const tdLabel = tr.insertCell();
+    tdLabel.textContent = `P${p}`;
+    tdLabel.style.fontWeight = "600";
+    tdLabel.style.background = "#edf2f7";
+
+    for (let d = 1; d <= daysPerWeek; d++) {
+      const td = tr.insertCell();
+      const key = `${d},${p}`;
+      const items = bySlot[key] || [];
+      if (items.length === 0) {
+        td.style.color = "#a0aec0";
+        td.textContent = "—";
+      } else {
+        td.innerHTML = items.map(s =>
+          `<div style="margin-bottom:.2rem">
+            <strong>${esc(s.subject)}</strong><br/>
+            <span style="color:#718096;font-size:.72rem">${esc(s.teacher)} · ${esc(s.room)}</span>
+          </div>`
+        ).join("");
+      }
+    }
+  }
+
+  const container = document.getElementById("grid-container");
+  container.innerHTML = "";
+  container.appendChild(table);
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+</script>
+</body>
+</html>
