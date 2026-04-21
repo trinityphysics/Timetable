@@ -85,6 +85,40 @@ def test_all_periods_scheduled():
 # ---------------------------------------------------------------------------
 
 
+def test_teacher_not_double_booked_within_same_column():
+    """A teacher shared by two subjects in the same column must never appear
+    at the same slot in both assignments.
+
+    When it is physically impossible to schedule (same teacher required for
+    both simultaneous subjects), the scheduler must report hard conflicts
+    rather than silently producing a double-booked timetable.
+    """
+    config = make_config(
+        teachers=[Teacher("T")],
+        rooms=[Room("R1"), Room("R2")],
+        columns=[Column("E")],
+        subjects=[
+            Subject("Math",    "E", "T", periods_per_week=2, room="R1"),
+            Subject("Science", "E", "T", periods_per_week=2, room="R2"),
+        ],
+    )
+    assignments, conflicts = Scheduler(config).schedule()
+
+    # The conflict must be reported — the column is unschedulable
+    hard = [c for c in conflicts if c.severity == "hard"]
+    assert hard, "Expected hard conflicts for unschedulable same-teacher column, got none"
+
+    # Whatever assignments were produced must not double-book the teacher
+    slots_per_teacher = defaultdict(list)
+    for a in assignments:
+        slots_per_teacher[a.teacher].append(a.slot)
+
+    for teacher, slots in slots_per_teacher.items():
+        assert len(slots) == len(set(slots)), (
+            f"Teacher '{teacher}' double-booked within same column at slots {slots}"
+        )
+
+
 def test_teacher_not_double_booked():
     """A teacher must not appear in two assignments at the same slot."""
     config = make_config(
