@@ -61,6 +61,20 @@ def test_parse_config_unavailable_slots():
     assert (3, 4) in config.teachers[0].unavailable
 
 
+def test_parse_config_column_pinned_slots():
+    """pinned_slots in a columns entry must be parsed and stored on the Column object."""
+    data = _minimal_data()
+    data["columns"][0]["pinned_slots"] = [[1, 1], [2, 3], [4, 5]]
+    config = parse_config(data)
+    assert config.columns[0].pinned_slots == [(1, 1), (2, 3), (4, 5)]
+
+
+def test_parse_config_column_pinned_slots_empty_by_default():
+    """Columns without pinned_slots should default to an empty list."""
+    config = parse_config(_minimal_data())
+    assert config.columns[0].pinned_slots == []
+
+
 def test_parse_config_preferred_periods():
     data = _minimal_data()
     data["subjects"][0]["preferred_periods"] = [[2, 3], [4, 5]]

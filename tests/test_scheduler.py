@@ -439,3 +439,66 @@ def test_year_group_period_map_pins_column_slots():
         f"Column F must be at pinned slots {{(2,1),(4,3)}}, got {col_f_slots}"
     )
 
+
+
+def test_pinned_slots_via_api_config_json():
+    """
+    Columns sent as part of a JSON config payload (e.g. from the 5-step wizard
+    frontend) with a ``pinned_slots`` key must be stored on the Column object
+    and respected by the scheduler.
+    """
+    from timetable.config_loader import parse_config
+
+    data = {
+        "days_per_week": 5,
+        "periods_per_day": 6,
+        "teachers": [{"name": "Ms. A", "non_contact_entitlement": 0, "unavailable": []}],
+        "rooms": [],
+        "columns": [
+            {"name": "COL_0", "pinned_slots": [[1, 2], [3, 4], [5, 1]], "unavailable": []},
+        ],
+        "subjects": [
+            {"name": "Subj-1", "column": "COL_0", "teacher": "Ms. A", "periods_per_week": 3},
+        ],
+    }
+    config = parse_config(data)
+    assert config.columns[0].pinned_slots == [(1, 2), (3, 4), (5, 1)]
+
+    assignments, conflicts = Scheduler(config).schedule()
+    hard = [c for c in conflicts if c.severity == "hard"]
+    assert hard == [], f"Unexpected hard conflicts: {hard}"
+
+    used = {(a.day, a.period) for a in assignments}
+    assert used == {(1, 2), (3, 4), (5, 1)}, (
+        f"Expected slots {{(1,2),(3,4),(5,1)}}, got {used}"
+    )
+
+
+def test_pinned_slots_teacher_conflict_via_json():
+    """
+    When a teacher is unavailable at a pinned slot, a hard conflict is reported.
+    This validates the Step 4 Auto-Assign workflow in the 5-step wizard.
+    """
+    from timetable.config_loader import parse_config
+
+    # Teacher unavailable at Day 1 P1, but column is pinned to 4 slots including (1,1)
+    data = {
+        "days_per_week": 5,
+        "periods_per_day": 6,
+        "teachers": [
+            {"name": "Mr. B", "non_contact_entitlement": 0, "unavailable": [[1, 1]]},
+        ],
+        "rooms": [],
+        "columns": [
+            {"name": "COL_0", "pinned_slots": [[1, 1], [2, 2], [3, 3], [4, 4]], "unavailable": []},
+        ],
+        "subjects": [
+            {"name": "Subj-1", "column": "COL_0", "teacher": "Mr. B", "periods_per_week": 4},
+        ],
+    }
+    config = parse_config(data)
+    _, conflicts = Scheduler(config).schedule()
+    hard = [c for c in conflicts if c.severity == "hard"]
+    # One of the four pinned slots is blocked → exactly one session unschedulable
+    assert len(hard) == 1
+    assert hard[0].category == "unschedulable"

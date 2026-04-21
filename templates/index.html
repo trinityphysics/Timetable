@@ -6,565 +6,213 @@
   <title>Timetable Scheduler</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background: #f5f7fa;
-      color: #1a202c;
-      min-height: 100vh;
+      background: #f5f7fa; color: #1a202c; min-height: 100vh;
     }
-
     header {
-      background: #2d3748;
-      color: #fff;
-      padding: 1rem 2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      background: #2d3748; color: #fff;
+      padding: 1rem 2rem; display: flex; align-items: center; gap: 0.75rem;
     }
     header h1 { font-size: 1.35rem; font-weight: 600; }
     header span { font-size: 1.5rem; }
-
     main {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
+      max-width: 1400px; margin: 2rem auto;
+      padding: 0 1.5rem; display: grid; gap: 1.5rem;
     }
-
-    /* ---- Step bar ---- */
     .step-bar {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.1);
-      padding: 1rem 1.5rem;
+      display: flex; align-items: center; background: #fff;
+      border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+      padding: 1rem 1.5rem; flex-wrap: wrap; gap: 0.25rem;
     }
     .step-item {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      cursor: pointer;
-      flex: 1;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      transition: background .15s;
+      display: flex; align-items: center; gap: 0.5rem;
+      cursor: pointer; flex: 1; padding: 0.25rem 0.4rem;
+      border-radius: 6px; transition: background .15s; min-width: 0;
     }
     .step-item:hover { background: #f7fafc; }
     .step-num {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: #cbd5e0;
-      color: #4a5568;
-      font-weight: 700;
-      font-size: 0.85rem;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #cbd5e0; color: #4a5568; font-weight: 700; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .step-item.active .step-num { background: #3182ce; color: #fff; }
     .step-item.done   .step-num { background: #38a169; color: #fff; }
-    .step-label {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #718096;
-    }
+    .step-label { font-size: 0.78rem; font-weight: 600; color: #718096; white-space: nowrap; }
     .step-item.active .step-label { color: #2d3748; }
     .step-item.done   .step-label { color: #276749; }
-    .step-divider {
-      height: 2px; width: 2rem; background: #e2e8f0;
-      flex-shrink: 0;
-    }
-
-    /* ---- Card ---- */
+    .step-divider { height: 2px; width: 1.5rem; background: #e2e8f0; flex-shrink: 0; }
     .card {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.1);
-      padding: 1.25rem;
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1); padding: 1.25rem;
     }
-    .card h2 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 0.35rem;
-      color: #2d3748;
-    }
-    .step-desc {
-      font-size: 0.82rem;
-      color: #718096;
-      margin-bottom: 1.25rem;
-      line-height: 1.5;
-    }
-
-    /* ---- Settings row ---- */
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem; color: #2d3748; }
+    .step-desc { font-size: 0.82rem; color: #718096; margin-bottom: 1.25rem; line-height: 1.5; }
     .settings-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.25rem;
-      border-bottom: 1px solid #e2e8f0;
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0;
     }
-
-    /* ---- Form section ---- */
     .form-section { margin-bottom: 1rem; }
     .form-section h3 {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #4a5568;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-bottom: 0.6rem;
-      padding-bottom: 0.35rem;
-      border-bottom: 2px solid #e2e8f0;
+      font-size: 0.8rem; font-weight: 700; color: #4a5568;
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-bottom: 0.6rem; padding-bottom: 0.35rem; border-bottom: 2px solid #e2e8f0;
     }
-
-    /* ---- Item rows ---- */
     .item-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: flex-start;
-      padding: 0.6rem 0.75rem;
-      background: #f7fafc;
-      border-radius: 6px;
-      margin-bottom: 0.4rem;
-      border: 1px solid #e2e8f0;
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-start;
+      padding: 0.6rem 0.75rem; background: #f7fafc;
+      border-radius: 6px; margin-bottom: 0.4rem; border: 1px solid #e2e8f0;
     }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-    }
+    .field-group { display: flex; flex-direction: column; gap: 0.2rem; }
     .field-group label {
-      font-size: 0.68rem;
-      color: #718096;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      font-weight: 600;
+      font-size: 0.68rem; color: #718096; text-transform: uppercase;
+      letter-spacing: .05em; font-weight: 600;
     }
-    .field-group input[type=text],
-    .field-group input[type=number],
-    .field-group select {
-      padding: 0.3rem 0.5rem;
-      border: 1px solid #cbd5e0;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      background: #fff;
-      color: #1a202c;
-      min-width: 0;
+    .field-group input[type=text], .field-group input[type=number], .field-group select {
+      padding: 0.3rem 0.5rem; border: 1px solid #cbd5e0; border-radius: 4px;
+      font-size: 0.82rem; background: #fff; color: #1a202c; min-width: 0;
     }
-    .field-group input[type=text]:focus,
-    .field-group input[type=number]:focus,
+    .field-group input[type=text]:focus, .field-group input[type=number]:focus,
     .field-group select:focus {
-      outline: none;
-      border-color: #4299e1;
-      box-shadow: 0 0 0 2px rgba(66,153,225,.2);
+      outline: none; border-color: #4299e1; box-shadow: 0 0 0 2px rgba(66,153,225,.2);
     }
     .field-group input[type=text] { min-width: 110px; }
-
-    /* ---- Slot chips ---- */
-    .slot-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-      align-items: center;
-      padding: 0.2rem 0;
-    }
+    .slot-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; padding: 0.2rem 0; }
     .chip {
-      background: #e2e8f0;
-      border-radius: 9999px;
-      padding: 0.15rem 0.35rem 0.15rem 0.55rem;
-      font-size: 0.72rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.2rem;
-      color: #4a5568;
+      background: #e2e8f0; border-radius: 9999px; padding: 0.15rem 0.35rem 0.15rem 0.55rem;
+      font-size: 0.72rem; display: inline-flex; align-items: center; gap: 0.2rem; color: #4a5568;
     }
-    .chip-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #a0aec0;
-      font-size: 0.9rem;
-      padding: 0;
-      line-height: 1;
-      font-weight: 700;
-    }
+    .chip-btn { background: none; border: none; cursor: pointer; color: #a0aec0; font-size: 0.9rem; padding: 0; line-height: 1; font-weight: 700; }
     .chip-btn:hover { color: #e53e3e; }
-    .slot-add-row {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.7rem;
-      color: #718096;
-    }
-    .slot-add-row input {
-      width: 44px;
-      padding: 0.2rem 0.3rem;
-      border: 1px solid #cbd5e0;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      text-align: center;
-      background: #fff;
-      color: #1a202c;
-    }
-    .slot-add-row input:focus { outline: none; border-color: #4299e1; }
-    .btn-add-slot {
-      padding: 0.18rem 0.45rem;
-      font-size: 0.75rem;
-      background: #ebf8ff;
-      color: #2b6cb0;
-      border: 1px solid #bee3f8;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 700;
-    }
+    .slot-add-row { display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; color: #718096; }
+    .slot-add-row input { width: 44px; padding: 0.2rem 0.3rem; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 0.75rem; text-align: center; background: #fff; color: #1a202c; }
+    .btn-add-slot { padding: 0.18rem 0.45rem; font-size: 0.75rem; background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; border-radius: 4px; cursor: pointer; font-weight: 700; }
     .btn-add-slot:hover { background: #bee3f8; }
-
-    /* ---- Buttons ---- */
-    .btn-delete {
-      background: none;
-      color: #a0aec0;
-      border: none;
-      font-size: 0.85rem;
-      cursor: pointer;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      margin-left: auto;
-      align-self: flex-start;
-      line-height: 1;
-      white-space: nowrap;
-    }
+    .btn-delete { background: none; color: #a0aec0; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.15rem 0.45rem; border-radius: 4px; margin-left: auto; align-self: flex-start; line-height: 1; white-space: nowrap; }
     .btn-delete:hover { color: #e53e3e; background: #fff5f5; }
-
-    .btn-add-item {
-      background: #f7fafc;
-      color: #4a5568;
-      border: 1px dashed #cbd5e0;
-      border-radius: 6px;
-      padding: 0.4rem 1rem;
-      font-size: 0.8rem;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 0.25rem;
-      text-align: center;
-    }
+    .btn-add-item { background: #f7fafc; color: #4a5568; border: 1px dashed #cbd5e0; border-radius: 6px; padding: 0.4rem 1rem; font-size: 0.8rem; cursor: pointer; width: 100%; margin-top: 0.25rem; text-align: center; }
     .btn-add-item:hover { background: #edf2f7; border-color: #a0aec0; }
-
-    /* ---- Step navigation ---- */
-    .step-nav {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid #e2e8f0;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .btn-prev {
-      padding: 0.55rem 1.25rem;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 600;
-      background: #edf2f7;
-      color: #4a5568;
-    }
+    .step-nav { display: flex; gap: 0.75rem; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid #e2e8f0; flex-wrap: wrap; align-items: center; }
+    .btn-prev { padding: 0.55rem 1.25rem; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; background: #edf2f7; color: #4a5568; }
     .btn-prev:hover { background: #e2e8f0; }
-    .btn-next {
-      padding: 0.55rem 1.25rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 600;
-      background: #3182ce;
-      color: #fff;
-    }
+    .btn-next { padding: 0.55rem 1.25rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; background: #3182ce; color: #fff; }
     .btn-next:hover { background: #2b6cb0; }
-    #btn-schedule {
-      padding: 0.55rem 1.25rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 600;
-      background: #38a169;
-      color: #fff;
-      transition: background .2s, opacity .2s;
-    }
-    #btn-schedule:hover { background: #2f855a; }
-    #btn-schedule:disabled { opacity: .5; cursor: default; }
-    #btn-reset {
-      padding: 0.55rem 1.25rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 600;
-      background: #edf2f7;
-      color: #4a5568;
-    }
-    #btn-reset:hover { background: #e2e8f0; }
-
-    #status {
-      font-size: 0.8rem;
-      margin-top: 0.5rem;
-      min-height: 1.2em;
-    }
-    #status.error { color: #e53e3e; }
-    #status.ok    { color: #38a169; }
-
-    /* ---- Year group period grid ---- */
-    .yg-row { flex-direction: column; }
-    .yg-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-      flex-wrap: wrap;
-    }
-    .period-grid {
-      border-collapse: collapse;
-      font-size: 0.78rem;
-    }
-    .period-grid th, .period-grid td {
-      border: 1px solid #e2e8f0;
-      padding: 0.2rem 0.3rem;
-      text-align: center;
-    }
-    .period-grid thead th {
-      background: #edf2f7;
-      font-weight: 600;
-      color: #4a5568;
-    }
-    .period-grid .period-label {
-      background: #edf2f7;
-      font-weight: 600;
-      color: #4a5568;
-      white-space: nowrap;
-    }
-    .col-input {
-      width: 42px;
-      padding: 0.2rem 0.25rem;
-      border: 1px solid #cbd5e0;
-      border-radius: 3px;
-      font-size: 0.78rem;
-      text-align: center;
-      text-transform: uppercase;
-      background: #fff;
-      color: #1a202c;
-    }
-    .col-input:focus {
-      outline: none;
-      border-color: #4299e1;
-      box-shadow: 0 0 0 2px rgba(66,153,225,.2);
-    }
-
-    /* ---- Class row ---- */
-    .class-row-fields {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      flex: 1;
-      min-width: 0;
-      align-items: flex-start;
-    }
-    .code-badge {
-      display: inline-block;
-      padding: 0.18rem 0.45rem;
-      background: #ebf8ff;
-      border: 1px solid #bee3f8;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #2b6cb0;
-      white-space: nowrap;
-    }
-
-    /* ---- Results ---- */
-    .result-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    .stat-box {
-      background: #ebf8ff;
-      border-left: 4px solid #3182ce;
-      border-radius: 6px;
-      padding: 0.75rem 1rem;
-    }
+    .btn-action { padding: 0.55rem 1.25rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; background: #38a169; color: #fff; transition: background .2s, opacity .2s; }
+    .btn-action:hover { background: #2f855a; }
+    .btn-action:disabled { opacity: .5; cursor: default; }
+    .btn-reset { padding: 0.55rem 1.25rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; background: #edf2f7; color: #4a5568; }
+    .btn-reset:hover { background: #e2e8f0; }
+    .status-msg { font-size: 0.8rem; min-height: 1.2em; }
+    .status-msg.error { color: #e53e3e; }
+    .status-msg.ok    { color: #38a169; }
+    .section-teachers { display: flex; flex-direction: column; gap: 0.25rem; }
+    .section-teacher-row { display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; }
+    .section-label { font-size: 0.7rem; font-weight: 700; color: #4a5568; background: #edf2f7; border-radius: 3px; padding: 0.1rem 0.3rem; white-space: nowrap; flex-shrink: 0; }
+    .section-teacher-row select { padding: 0.22rem 0.4rem; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 0.78rem; background: #fff; color: #1a202c; }
+    .code-badge { display: inline-block; padding: 0.18rem 0.45rem; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 4px; font-size: 0.78rem; font-weight: 700; color: #2b6cb0; white-space: nowrap; }
+    /* Step 2 */
+    .placement-layout { display: grid; grid-template-columns: 1fr 240px; gap: 1rem; align-items: start; }
+    .placement-grid-wrapper { overflow-x: auto; }
+    .placement-table { border-collapse: collapse; width: 100%; font-size: 0.8rem; min-width: 360px; }
+    .placement-table th { background: #2d3748; color: #fff; padding: 0.4rem 0.5rem; text-align: center; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+    .period-label-cell { background: #edf2f7; font-weight: 600; font-size: 0.75rem; padding: 0.3rem 0.5rem; text-align: center; border: 1px solid #e2e8f0; white-space: nowrap; }
+    .grid-cell { border: 1px solid #e2e8f0; padding: 0.25rem; min-width: 80px; min-height: 44px; vertical-align: top; cursor: pointer; transition: background .12s; position: relative; }
+    .grid-cell:hover { background: #ebf8ff; }
+    .grid-cell.selected-target { background: #bee3f8; border-color: #4299e1; box-shadow: inset 0 0 0 2px #4299e1; }
+    .class-pool { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.75rem; }
+    .class-pool h3 { font-size: 0.75rem; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 0.6rem; }
+    .pool-hint { font-size: 0.72rem; color: #a0aec0; margin-bottom: 0.5rem; font-style: italic; }
+    .pool-item { background: #fff; border: 2px solid #e2e8f0; border-radius: 6px; padding: 0.45rem 0.65rem; margin-bottom: 0.4rem; cursor: pointer; transition: all .15s; user-select: none; }
+    .pool-item:hover { border-color: #4299e1; background: #ebf8ff; }
+    .pool-item.selected { border-color: #3182ce; background: #bee3f8; }
+    .pool-item.complete { border-color: #38a169; background: #f0fff4; opacity: .75; }
+    .pool-item.complete:hover { border-color: #38a169; background: #f0fff4; }
+    .pool-item-name { font-size: 0.8rem; font-weight: 600; color: #2d3748; margin-bottom: 0.12rem; }
+    .pool-item-counter { font-size: 0.7rem; color: #718096; }
+    .pool-item.selected .pool-item-counter { color: #2b6cb0; }
+    .pool-item.complete .pool-item-counter { color: #276749; }
+    .placed-badge { display: flex; align-items: center; gap: 0.2rem; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 4px; padding: 0.15rem 0.3rem; margin-bottom: 0.15rem; font-size: 0.68rem; font-weight: 600; color: #2b6cb0; }
+    .placed-badge-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
+    .placed-badge .rm-btn { background: none; border: none; cursor: pointer; color: #a0aec0; font-size: 0.8rem; padding: 0; line-height: 1; flex-shrink: 0; }
+    .placed-badge .rm-btn:hover { color: #e53e3e; }
+    /* Steps 4 & 5 */
+    .result-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .stat-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 6px; padding: 0.75rem 1rem; }
     .stat-box .label { font-size: 0.75rem; color: #4a5568; text-transform: uppercase; letter-spacing: .05em; }
     .stat-box .value { font-size: 1.5rem; font-weight: 700; color: #2b6cb0; }
-
     .timetable-wrapper { overflow-x: auto; }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      font-size: 0.8rem;
-    }
-    th, td {
-      border: 1px solid #e2e8f0;
-      padding: 0.45rem 0.65rem;
-      text-align: left;
-      white-space: nowrap;
-    }
-    thead th {
-      background: #2d3748;
-      color: #fff;
-      font-weight: 600;
-    }
-    tbody tr:nth-child(even) { background: #f7fafc; }
-
-    .pill {
-      display: inline-block;
-      padding: 0.15rem 0.55rem;
-      border-radius: 9999px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .pill-hard { background: #fed7d7; color: #9b2c2c; }
-    .pill-soft { background: #fefcbf; color: #744210; }
-
-    .conflict-list { list-style: none; margin-top: 0.5rem; }
-    .conflict-list li {
-      padding: 0.4rem 0.6rem;
-      border-radius: 4px;
-      margin-bottom: 0.35rem;
-      font-size: 0.82rem;
-    }
+    .result-table { border-collapse: collapse; width: 100%; font-size: 0.8rem; min-width: 360px; }
+    .result-table th { background: #2d3748; color: #fff; padding: 0.4rem 0.65rem; text-align: center; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+    .result-cell { border: 1px solid #e2e8f0; padding: 0.25rem; min-width: 85px; min-height: 44px; vertical-align: top; position: relative; }
+    .result-cell.conflict-cell { background: #fff5f5; border-color: #feb2b2; }
+    .session-badge { border-radius: 4px; padding: 0.15rem 0.3rem; margin-bottom: 0.15rem; font-size: 0.7rem; border: 1px solid #bee3f8; background: #ebf8ff; }
+    .session-badge .sb-subject { font-weight: 700; display: block; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+    .session-badge .sb-teacher { font-size: 0.65rem; color: #718096; }
+    .session-badge.conflict-badge { background: #fff5f5; border-color: #fc8181; }
+    .session-badge.draggable { cursor: grab; }
+    .session-badge.dragging  { opacity: .4; }
+    .result-cell.drag-over { background: #bee3f8 !important; border-color: #4299e1 !important; }
+    .conflict-panel-title { font-size: 0.8rem; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: .06em; margin: 0.75rem 0 0.4rem; }
+    .conflict-list { list-style: none; }
+    .conflict-list li { padding: 0.35rem 0.55rem; border-radius: 4px; margin-bottom: 0.3rem; font-size: 0.8rem; }
     .conflict-list li.hard { background: #fff5f5; border-left: 3px solid #fc8181; }
     .conflict-list li.soft { background: #fffff0; border-left: 3px solid #f6e05e; }
-
-    #placeholder {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: #a0aec0;
-      font-size: 0.9rem;
-    }
-
+    .pill { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 9999px; font-size: 0.68rem; font-weight: 600; }
+    .pill-hard { background: #fed7d7; color: #9b2c2c; }
+    .pill-soft { background: #fefcbf; color: #744210; }
+    .section-heading { font-size: 0.8rem; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 0.5rem; }
     .hidden { display: none !important; }
-
-    .tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    .tab {
-      padding: 0.4rem 1rem;
-      cursor: pointer;
-      border-radius: 4px 4px 0 0;
-      font-size: 0.85rem;
-      color: #4a5568;
-      border: 2px solid transparent;
-      border-bottom: none;
-      margin-bottom: -2px;
-    }
-    .tab.active {
-      background: #fff;
-      border-color: #e2e8f0;
-      border-bottom-color: #fff;
-      color: #2d3748;
-      font-weight: 600;
-    }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
       .step-label { display: none; }
-      .step-divider { width: 1rem; }
+      .step-divider { width: 0.4rem; }
+      .placement-layout { grid-template-columns: 1fr; }
     }
-
-    /* ---- Section-teacher dropdowns ---- */
-    .section-teachers { display: flex; flex-direction: column; gap: 0.25rem; }
-    .section-teacher-row {
-      display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;
-    }
-    .section-label {
-      font-size: 0.7rem; font-weight: 700; color: #4a5568;
-      background: #edf2f7; border-radius: 3px; padding: 0.1rem 0.3rem;
-      white-space: nowrap; flex-shrink: 0;
-    }
-    .section-teacher-row select {
-      padding: 0.22rem 0.4rem; border: 1px solid #cbd5e0; border-radius: 4px;
-      font-size: 0.78rem; background: #fff; color: #1a202c;
-    }
-
-    /* ---- Auto-calculated badges ---- */
-    .calc-badge {
-      display: inline-block; padding: 0.18rem 0.45rem;
-      background: #f0fff4; border: 1px solid #9ae6b4;
-      border-radius: 4px; font-size: 0.78rem; font-weight: 600;
-      color: #276749; white-space: nowrap;
-    }
-    .calc-badge.zero { background: #fff5f5; border-color: #feb2b2; color: #9b2c2c; }
-
-    /* ---- Split class review ---- */
-    .split-class-card {
-      border: 1px solid #e2e8f0; border-radius: 6px;
-      padding: 0.75rem; margin-bottom: 0.75rem; background: #f7fafc;
-    }
-    .split-class-card.conflict { border-color: #fc8181; background: #fff5f5; }
-    .split-class-title { font-size: 0.85rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; }
-    .split-conflict-warning {
-      font-size: 0.8rem; color: #9b2c2c; background: #fed7d7;
-      border-radius: 4px; padding: 0.4rem 0.6rem; margin-bottom: 0.5rem;
-    }
-    .split-table { border-collapse: collapse; font-size: 0.78rem; width: 100%; }
-    .split-table th, .split-table td {
-      border: 1px solid #e2e8f0; padding: 0.25rem 0.5rem; text-align: left;
-    }
-    .split-table thead th { background: #edf2f7; font-weight: 600; }
   </style>
 </head>
 <body>
-
 <header>
-  <span>🗓️</span>
+  <span>&#128197;</span>
   <h1>Timetable Scheduler</h1>
 </header>
-
 <main>
-
-  <!-- ── Step indicator ── -->
+  <!-- Step indicator -->
   <div class="step-bar">
     <div class="step-item active" id="step-indicator-1" onclick="goToStep(1)">
       <div class="step-num" id="step-num-1">1</div>
-      <div class="step-label">Year Groups &amp; Columns</div>
+      <div class="step-label">Classes</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="step-indicator-2" onclick="goToStep(2)">
       <div class="step-num" id="step-num-2">2</div>
-      <div class="step-label">Teachers</div>
+      <div class="step-label">Place on Grid</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="step-indicator-3" onclick="goToStep(3)">
       <div class="step-num" id="step-num-3">3</div>
-      <div class="step-label">Classes</div>
+      <div class="step-label">Teachers</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="step-indicator-4" onclick="goToStep(4)">
       <div class="step-num" id="step-num-4">4</div>
-      <div class="step-label">Results &amp; Review</div>
+      <div class="step-label">Auto-Assign</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="step-indicator-5" onclick="goToStep(5)">
+      <div class="step-num" id="step-num-5">5</div>
+      <div class="step-label">Resolve</div>
     </div>
   </div>
 
-  <!-- ── Step 1: Year Groups & Columns ── -->
+  <!-- Step 1: Classes -->
   <div class="card" id="step-1">
-    <h2>Step 1 — Year Groups &amp; Period Columns</h2>
+    <h2>Step 1 &#8212; Classes &amp; Configuration</h2>
     <p class="step-desc">
-      Set up basic timetable settings, define your year groups (e.g. S3, S4, S5) and fill in
-      which column letter each day/period corresponds to for that year group.  Not all year
-      groups share the same column at the same time, so each has its own mapping.
+      Configure the timetable and enter each class to be scheduled.
+      For each class specify the subject, year group, level, how many periods per week
+      it meets, the number of parallel sections, an optional preferred room, and optionally
+      which teacher should take each section (leave on <em>Any teacher</em> for automatic
+      assignment in Step 4).
     </p>
-
     <div class="settings-row">
       <div class="field-group">
         <label>Timetable Name</label>
@@ -572,134 +220,98 @@
       </div>
       <div class="field-group">
         <label>Days per Week</label>
-        <input type="number" id="tt-days" min="1" max="7" style="width:70px"
-          onchange="onSettingsChange()" />
+        <input type="number" id="tt-days" min="1" max="7" style="width:70px" onchange="onSettingsChange()" />
       </div>
       <div class="field-group">
         <label>Periods per Day</label>
-        <input type="number" id="tt-periods" min="1" max="20" style="width:70px"
-          onchange="onSettingsChange()" />
+        <input type="number" id="tt-periods" min="1" max="20" style="width:70px" onchange="onSettingsChange()" />
       </div>
     </div>
-
-    <div class="form-section">
-      <h3>Year Groups</h3>
-      <div id="yeargroups-container"></div>
-      <button class="btn-add-item" onclick="addYearGroup()">+ Add Year Group</button>
-    </div>
-
-    <div class="step-nav">
-      <button id="btn-reset">&#8634; Reset to Example</button>
-      <button class="btn-next" onclick="goToStep(2)" style="margin-left:auto">Next: Teachers &#9658;</button>
-    </div>
-  </div>
-
-  <!-- ── Step 2: Teachers ── -->
-  <div class="card hidden" id="step-2">
-    <h2>Step 2 — Teachers</h2>
-    <p class="step-desc">
-      Enter each teacher's name, their non-contact entitlement (number of free periods per week),
-      and any specific periods when they are unavailable.
-    </p>
-
-    <div class="form-section">
-      <h3>Teachers</h3>
-      <div id="teachers-container"></div>
-      <button class="btn-add-item" onclick="addTeacher()">+ Add Teacher</button>
-    </div>
-
-    <div class="step-nav">
-      <button class="btn-prev" onclick="goToStep(1)">&#9668; Previous</button>
-      <button class="btn-next" onclick="goToStep(3)" style="margin-left:auto">Next: Classes &#9658;</button>
-    </div>
-  </div>
-
-  <!-- ── Step 3: Classes ── -->
-  <div class="card hidden" id="step-3">
-    <h2>Step 3 — Classes</h2>
-    <p class="step-desc">
-      Enter each class to be scheduled.  Select the year group, subject, level, and column — the
-      number of periods per week is filled in automatically from the period map in Step 1.
-      If a class has multiple sections each section gets its own code
-      (e.g. <strong>S4-P-H-E-1</strong> and <strong>S4-P-H-E-2</strong>).
-      Use the per-section teacher dropdowns to assign teachers:
-      leave a section on <em>Any teacher</em> for automatic assignment.
-      A hard rule is applied only when all sections have a specific teacher selected
-      (1 section with 1 teacher, or 2 sections each with a different teacher).
-    </p>
-
     <div class="form-section">
       <h3>Classes</h3>
       <div id="classes-container"></div>
       <button class="btn-add-item" onclick="addClass()">+ Add Class</button>
     </div>
-
     <div class="step-nav">
-      <button class="btn-prev" onclick="goToStep(2)">&#9668; Previous</button>
-      <button id="btn-schedule" style="margin-left:auto">&#9889; Generate Timetable</button>
+      <button class="btn-reset" id="btn-reset">&#8634; Reset to Example</button>
+      <button class="btn-next" onclick="goToStep(2)" style="margin-left:auto">Next: Place on Grid &#9658;</button>
     </div>
-    <p id="status"></p>
   </div>
 
-  <!-- ── Step 4: Results & Review ── -->
-  <div class="card hidden" id="step-4">
-    <h2>Step 4 — Results &amp; Review</h2>
-
-    <div id="placeholder" style="text-align:center;padding:3rem 1rem;color:#a0aec0;font-size:.9rem">
-      Complete all three steps above and click <strong>Generate Timetable</strong> to see results.
-    </div>
-
-    <div id="output" class="hidden">
-      <div class="result-grid" id="stats"></div>
-
-      <div class="tabs">
-        <div class="tab active" data-tab="timetable">Timetable</div>
-        <div class="tab" data-tab="sessions">All Sessions</div>
-        <div class="tab" data-tab="conflicts">Conflicts</div>
-        <div class="tab" data-tab="splitreview">Split Class Review</div>
-      </div>
-
-      <div class="tab-panel active" id="tab-timetable">
-        <div class="timetable-wrapper" id="grid-container"></div>
-      </div>
-
-      <div class="tab-panel" id="tab-sessions">
-        <div class="timetable-wrapper">
-          <table id="sessions-table">
-            <thead>
-              <tr>
-                <th>Day</th><th>Period</th><th>Column</th>
-                <th>Class</th><th>Teacher</th><th>Room</th>
-              </tr>
-            </thead>
-            <tbody id="sessions-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="tab-panel" id="tab-conflicts">
-        <ul class="conflict-list" id="conflict-list"></ul>
-        <p id="no-conflicts" style="color:#38a169;font-size:.85rem;" class="hidden">
-          &#10003; No conflicts found.
-        </p>
-      </div>
-
-      <div class="tab-panel" id="tab-splitreview">
-        <p style="font-size:.82rem;color:#718096;margin-bottom:.75rem">
-          Multi-section classes are listed below.  If both sections are assigned to the
-          same teacher (a conflict for parallel sections), this is highlighted.
-          Change teacher assignments here and click <strong>Apply &amp; Re-schedule</strong>
-          to update the timetable.
-        </p>
-        <div id="split-class-review"></div>
-        <button id="btn-reschedule" class="btn-next" style="margin-top:.75rem">
-          &#9889; Apply &amp; Re-schedule
-        </button>
-      </div>
-    </div>
-
+  <!-- Step 2: Grid Placement -->
+  <div class="card hidden" id="step-2">
+    <h2>Step 2 &#8212; Timetable Grid Placement</h2>
+    <p class="step-desc">
+      Click a class in the panel on the right to select it, then click a cell in the grid to
+      place it for that time slot. Each class shows a <strong>placed / total</strong> counter.
+      Click the <strong>&#215;</strong> on a placed badge to remove it from that slot.
+    </p>
+    <div class="placement-layout" id="placement-layout"></div>
     <div class="step-nav">
-      <button class="btn-prev" onclick="goToStep(3)">&#9668; Back to Classes</button>
+      <button class="btn-prev" onclick="goToStep(1)">&#9668; Back to Classes</button>
+      <button class="btn-next" onclick="goToStep(3)" style="margin-left:auto">Next: Teachers &#9658;</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Teachers -->
+  <div class="card hidden" id="step-3">
+    <h2>Step 3 &#8212; Teacher Information &amp; Constraints</h2>
+    <p class="step-desc">
+      Enter each teacher's name, their non-contact entitlement (free periods per week),
+      and any slots when they are unavailable. Teachers defined here are available for
+      assignment to classes in Step 1.
+    </p>
+    <div class="form-section">
+      <h3>Teachers</h3>
+      <div id="teachers-container"></div>
+      <button class="btn-add-item" onclick="addTeacher()">+ Add Teacher</button>
+    </div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(2)">&#9668; Back to Placement</button>
+      <button class="btn-next" onclick="goToStep(4)" style="margin-left:auto">Next: Auto-Assign &#9658;</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Auto-Assign -->
+  <div class="card hidden" id="step-4">
+    <h2>Step 4 &#8212; Automatic Teacher Assignment</h2>
+    <p class="step-desc">
+      Click <strong>Run Auto-Assign</strong> to match teachers to classes while respecting
+      availability constraints. All class placements from Step 2 are kept exactly as placed.
+      Conflicts are highlighted in <span style="color:#e53e3e;font-weight:600">red</span>.
+    </p>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+      <button class="btn-action" id="btn-assign" onclick="runAutoAssign()">&#9889; Run Auto-Assign</button>
+      <span class="status-msg" id="assign-status"></span>
+    </div>
+    <div id="assign-output" class="hidden">
+      <div class="result-stats" id="assign-stats"></div>
+      <p class="section-heading">Timetable</p>
+      <div class="timetable-wrapper" id="assign-grid"></div>
+      <div id="assign-conflicts"></div>
+    </div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(3)">&#9668; Back to Teachers</button>
+      <button class="btn-next hidden" id="btn-to-step5" onclick="goToStep(5)" style="margin-left:auto">Next: Resolve Conflicts &#9658;</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Manual Resolution -->
+  <div class="card hidden" id="step-5">
+    <h2>Step 5 &#8212; Manual Conflict Resolution</h2>
+    <p class="step-desc">
+      Drag session cards between grid cells to resolve conflicts.
+      <span style="color:#e53e3e;font-weight:600">Red</span> highlights indicate a conflict
+      (teacher unavailable or double-booked). Highlights disappear automatically when resolved.
+    </p>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem">
+      <span style="font-size:.82rem;color:#718096">Drag a session card to a different cell to move it.</span>
+      <span class="status-msg" id="resolve-status" style="margin-left:auto"></span>
+    </div>
+    <div class="timetable-wrapper" id="resolve-grid"></div>
+    <div id="resolve-conflicts"></div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(4)">&#9668; Back to Auto-Assign</button>
     </div>
   </div>
 </main>
@@ -708,742 +320,348 @@
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 // ── State ──
-// year_groups:  [{name: "S3", period_map: {day: {period: colLetter}}}]
-// teachers:     [{name: "", non_contact: 0, unavailable: []}]
-// classes:      [{year_group:"", subject:"Physics", level:"Higher", column:"",
-//                 sections:1, section_teachers:[""], /* "" = any */}]
-let s = { name: "", days_per_week: 5, periods_per_day: 6, year_groups: [], teachers: [], classes: [] };
-
+let s = { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] };
+let _nextId = 0;
+let _selectedPoolId = null;
+let _scheduleResult = null;
+let _step5Sessions  = [];
+let _draggingSession = null;
 let currentStep = 1;
-const _h = {};  // scoped helper registry
+const _h = {};
 
 // ── Example ──
 const EXAMPLE = {
   name: "Trinity Physics Timetable",
-  days_per_week: 5,
-  periods_per_day: 6,
-  year_groups: [
-    {
-      name: "S3",
-      period_map: {
-        1:{1:"A",2:"B",3:"C",4:"D",5:"E",6:"F"},
-        2:{1:"B",2:"C",3:"D",4:"E",5:"F",6:"A"},
-        3:{1:"C",2:"D",3:"E",4:"F",5:"A",6:"B"},
-        4:{1:"D",2:"E",3:"F",4:"A",5:"B",6:"C"},
-        5:{1:"E",2:"F",3:"A",4:"B",5:"C",6:"D"},
-      }
-    },
-    {
-      name: "S4",
-      period_map: {
-        1:{1:"C",2:"D",3:"A",4:"B",5:"E",6:"F"},
-        2:{1:"D",2:"E",3:"B",4:"C",5:"F",6:"A"},
-        3:{1:"E",2:"F",3:"C",4:"D",5:"A",6:"B"},
-        4:{1:"F",2:"A",3:"D",4:"E",5:"B",6:"C"},
-        5:{1:"A",2:"B",3:"E",4:"F",5:"C",6:"D"},
-      }
-    },
-    {
-      name: "S5",
-      period_map: {
-        1:{1:"E",2:"A",3:"B",4:"C",5:"D",6:"F"},
-        2:{1:"F",2:"B",3:"C",4:"D",5:"E",6:"A"},
-        3:{1:"A",2:"C",3:"D",4:"E",5:"F",6:"B"},
-        4:{1:"B",2:"D",3:"E",4:"F",5:"A",6:"C"},
-        5:{1:"C",2:"E",3:"F",4:"A",5:"B",6:"D"},
-      }
-    },
+  days_per_week: 5, periods_per_day: 6,
+  classes: [
+    { id:0, subject:"Physics",     year_group:"S4", level:"Higher", periods_per_week:4, sections:2, room:"", section_teachers:["Ms. Smith","Mr. Jones"] },
+    { id:1, subject:"Electronics", year_group:"S4", level:"N5",     periods_per_week:3, sections:1, room:"", section_teachers:["Mr. Jones"] },
+    { id:2, subject:"Physics",     year_group:"S5", level:"AH",     periods_per_week:3, sections:1, room:"", section_teachers:["Ms. Smith"] },
+    { id:3, subject:"Physics",     year_group:"S3", level:"N5",     periods_per_week:4, sections:2, room:"", section_teachers:["Mrs. Brown",""] },
+  ],
+  placements: [
+    {class_id:0,day:1,period:1},{class_id:0,day:2,period:2},{class_id:0,day:3,period:1},{class_id:0,day:4,period:3},
+    {class_id:1,day:1,period:3},{class_id:1,day:2,period:4},{class_id:1,day:3,period:2},
+    {class_id:2,day:1,period:2},{class_id:2,day:2,period:1},{class_id:2,day:5,period:3},
+    {class_id:3,day:1,period:4},{class_id:3,day:2,period:5},{class_id:3,day:4,period:1},{class_id:3,day:5,period:2},
   ],
   teachers: [
-    { name: "Ms. Smith",  non_contact: 2, unavailable: [] },
-    { name: "Mr. Jones",  non_contact: 2, unavailable: [[1,1]] },
-    { name: "Mrs. Brown", non_contact: 1, unavailable: [] },
-  ],
-  classes: [
-    { year_group:"S4", subject:"Physics",     level:"Higher", column:"E", sections:2, section_teachers:["Ms. Smith","Mr. Jones"] },
-    { year_group:"S4", subject:"Electronics", level:"N5",     column:"E", sections:1, section_teachers:["Mr. Jones"] },
-    { year_group:"S5", subject:"Physics",     level:"AH",     column:"A", sections:1, section_teachers:["Ms. Smith"] },
-    { year_group:"S3", subject:"Physics",     level:"N5",     column:"B", sections:2, section_teachers:["Mrs. Brown",""] },
+    { name:"Ms. Smith",  non_contact:2, unavailable:[] },
+    { name:"Mr. Jones",  non_contact:2, unavailable:[[1,1]] },
+    { name:"Mrs. Brown", non_contact:1, unavailable:[] },
   ],
 };
 
 // ── Helpers ──
-function esc(v) {
-  return String(v)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
+function esc(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function levelAbbrev(level){const l=(level||"").trim().toLowerCase();if(l==="n5"||l==="national 5")return "N5";if(l==="higher"||l==="h")return "H";if(l==="ah"||l==="advanced higher")return "AH";return(level||"").substring(0,2).toUpperCase()||"XX";}
+function subjectInitial(s){return((s||"").trim()[0]||"X").toUpperCase();}
+function classShortName(cls){return(cls.year_group?cls.year_group+" ":"")+(cls.subject||"?")+(cls.level?" "+levelAbbrev(cls.level):"");}
+function getClassCode(cls,section){const yg=cls.year_group||"XX";const si=subjectInitial(cls.subject);const la=levelAbbrev(cls.level);return yg+"-"+si+"-"+la+"-"+cls.id+"-"+section;}
+function getClassCodes(cls){const c=[];for(let i=1;i<=(parseInt(cls.sections)||1);i++)c.push(getClassCode(cls,i));return c;}
+function slotChipsHtml(slots,fn){return slots.map((sl,j)=>'<span class="chip">D'+sl[0]+' P'+sl[1]+'<button class="chip-btn" onclick="_h[\''+fn+'\']('+j+')" title="Remove">\xd7</button></span>').join("");}
+function slotAddRowHtml(dId,pId,fn){return '<span class="slot-add-row">Day <input type="number" min="1" id="'+dId+'" style="width:44px" placeholder="1"/> Per <input type="number" min="1" id="'+pId+'" style="width:44px" placeholder="1"/> <button class="btn-add-slot" onclick="_h[\''+fn+'\']()">+</button></span>';}
+function setStatusMsg(el,msg,type){el.textContent=msg;el.className="status-msg"+(type?" "+type:"");}
+function onSettingsChange(){s.days_per_week=Math.max(1,parseInt(document.getElementById("tt-days").value)||5);s.periods_per_day=Math.max(1,parseInt(document.getElementById("tt-periods").value)||6);}
 
-function levelAbbrev(level) {
-  const l = (level || "").trim().toLowerCase();
-  if (l === "n5" || l === "national 5") return "N5";
-  if (l === "higher" || l === "h") return "H";
-  if (l === "ah" || l === "advanced higher") return "AH";
-  return (level || "").substring(0, 2).toUpperCase() || "XX";
-}
-
-function subjectInitial(subject) {
-  return ((subject || "").trim()[0] || "X").toUpperCase();
-}
-
-function getClassCodes(cls) {
-  if (!cls.year_group || !cls.column || !cls.subject || !cls.level) return [];
-  const la  = levelAbbrev(cls.level);
-  const si  = subjectInitial(cls.subject);
-  const col = (cls.column || "").toUpperCase().trim();
-  const n   = parseInt(cls.sections) || 1;
-  const arr = [];
-  for (let i = 1; i <= n; i++) arr.push(cls.year_group + "-" + si + "-" + la + "-" + col + "-" + i);
-  return arr;
-}
-
-/** Return unique sorted column letters found in the given year-group's period map. */
-function getColumnsForYG(ygName) {
-  const yg = s.year_groups.find(y => y.name === ygName);
-  if (!yg) return [];
-  const colSet = new Set();
-  for (const d in yg.period_map) {
-    for (const p in yg.period_map[d]) {
-      const col = (yg.period_map[d][p] || "").toUpperCase().trim();
-      if (col) colSet.add(col);
-    }
+// ── Step Navigation ──
+function goToStep(n){
+  for(let i=1;i<=5;i++){
+    const panel=document.getElementById("step-"+i);
+    const ind=document.getElementById("step-indicator-"+i);
+    if(!ind)continue;
+    if(i===n){if(panel)panel.classList.remove("hidden");ind.classList.add("active");ind.classList.remove("done");}
+    else{if(panel)panel.classList.add("hidden");ind.classList.remove("active");if(i<n)ind.classList.add("done");else ind.classList.remove("done");}
   }
-  return [...colSet].sort();
+  currentStep=n;
+  if(n===2)renderPlacementGrid();
+  if(n===3)renderTeachers();
+  if(n===5&&_step5Sessions.length)renderResolutionGrid();
 }
 
-/** Count how many times the given column appears in the class's year-group period map. */
-function getPeriodsForClass(cls) {
-  if (!cls.year_group || !cls.column) return 0;
-  const yg = s.year_groups.find(y => y.name === cls.year_group);
-  if (!yg) return 0;
-  let count = 0;
-  for (const d in yg.period_map) {
-    for (const p in yg.period_map[d]) {
-      if ((yg.period_map[d][p] || "").toUpperCase().trim() === cls.column) count++;
-    }
-  }
-  return count;
-}
-
-function serializePeriodMap(pm) {
-  const out = [];
-  for (const d in pm) {
-    for (const p in pm[d]) {
-      const col = (pm[d][p] || "").trim().toUpperCase();
-      if (col) out.push([parseInt(d), parseInt(p), col]);
-    }
-  }
-  return out;
-}
-
-function slotChipsHtml(slots, removeFn) {
-  return slots.map((sl, j) =>
-    '<span class="chip">D' + sl[0] + ' P' + sl[1] +
-    '<button class="chip-btn" onclick="_h[\'' + removeFn + '\'](' + j + ')" title="Remove">\xd7</button></span>'
-  ).join("");
-}
-
-function slotAddRowHtml(dayId, perId, addFn) {
-  return '<span class="slot-add-row">Day <input type="number" min="1" id="' + dayId +
-    '" style="width:44px" placeholder="1" /> Per <input type="number" min="1" id="' + perId +
-    '" style="width:44px" placeholder="1" /> <button class="btn-add-slot" onclick="_h[\'' +
-    addFn + '\']()">+</button></span>';
-}
-
-// ── Step navigation ──
-function goToStep(n) {
-  [1,2,3,4].forEach(i => {
-    const panel = document.getElementById("step-" + i);
-    const ind   = document.getElementById("step-indicator-" + i);
-    if (!ind) return;
-    if (i === n) {
-      if (panel) panel.classList.remove("hidden");
-      ind.classList.add("active");
-      ind.classList.remove("done");
-    } else {
-      if (panel) panel.classList.add("hidden");
-      ind.classList.remove("active");
-      if (i < n) ind.classList.add("done"); else ind.classList.remove("done");
-    }
-  });
-  currentStep = n;
-}
-
-// ── Render: Year Groups ──
-function renderYearGroups() {
-  const c = document.getElementById("yeargroups-container");
-  c.innerHTML = "";
-  const days    = Math.max(1, parseInt(document.getElementById("tt-days").value) || 5);
-  const periods = Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6);
-
-  s.year_groups.forEach((yg, i) => {
-    const div = document.createElement("div");
-    div.className = "item-row yg-row";
-
-    let gridHtml = '<div style="overflow-x:auto"><table class="period-grid"><thead><tr><th>Period \\ Day</th>';
-    for (let d = 1; d <= days; d++) {
-      gridHtml += "<th>" + (DAY_NAMES[d-1] || "Day " + d) + "</th>";
-    }
-    gridHtml += "</tr></thead><tbody>";
-    for (let p = 1; p <= periods; p++) {
-      gridHtml += "<tr><td class=\"period-label\">P" + p + "</td>";
-      for (let d = 1; d <= days; d++) {
-        const val = (yg.period_map[d] && yg.period_map[d][p]) ? yg.period_map[d][p] : "";
-        gridHtml += '<td><input type="text" class="col-input" maxlength="10"' +
-          ' id="yg' + i + '-d' + d + '-p' + p + '"' +
-          ' value="' + esc(val) + '"' +
-          ' oninput="setYGCell(' + i + ',' + d + ',' + p + ',this.value)"' +
-          ' placeholder="\u2014" /></td>';
-      }
-      gridHtml += "</tr>";
-    }
-    gridHtml += "</tbody></table></div>";
-
-    div.innerHTML =
-      '<div style="width:100%">' +
-      '<div class="yg-header">' +
-      '<div class="field-group"><label>Year Group Name</label>' +
-      '<input type="text" value="' + esc(yg.name) + '" style="width:90px"' +
-      ' onchange="s.year_groups[' + i + '].name=this.value; renderClasses()" /></div>' +
-      '<button class="btn-delete" onclick="s.year_groups.splice(' + i + ',1); renderYearGroups(); renderClasses()"' +
-      ' title="Remove year group" style="margin-left:auto">\u2715 Remove</button>' +
-      '</div>' + gridHtml + '</div>';
+// ── Step 1: Classes ──
+function renderClasses(){
+  const c=document.getElementById("classes-container");
+  c.innerHTML="";
+  const teacherAnyOpt='<option value="">Any teacher</option>';
+  const teacherOpts=teacherAnyOpt+s.teachers.map(t=>'<option value="'+esc(t.name)+'">'+esc(t.name)+"</option>").join("");
+  s.classes.forEach((cls,i)=>{
+    const div=document.createElement("div");
+    div.className="item-row";
+    const n=parseInt(cls.sections)||1;
+    const st=cls.section_teachers||[];
+    let stHtml='<div class="section-teachers">';
+    for(let j=0;j<n;j++){stHtml+='<div class="section-teacher-row"><span class="section-label">\u00a7'+(j+1)+'</span><select id="cls'+i+'-st'+j+'" onchange="s.classes['+i+'].section_teachers['+j+']=this.value">'+teacherOpts+"</select></div>";}
+    stHtml+="</div>";
+    const codeHtml=getClassCodes(cls).map(cd=>'<span class="code-badge">'+esc(cd)+"</span>").join(" ");
+    div.innerHTML=
+      '<div style="display:flex;flex-wrap:wrap;gap:.5rem;flex:1;align-items:flex-start">'+
+      '<div class="field-group"><label>Subject</label><input type="text" id="cls'+i+'-subj" value="'+esc(cls.subject||"")+'" style="min-width:100px" onchange="s.classes['+i+'].subject=this.value;renderClasses()"/></div>'+
+      '<div class="field-group"><label>Year Group</label><input type="text" id="cls'+i+'-yg" value="'+esc(cls.year_group||"")+'" style="width:66px" onchange="s.classes['+i+'].year_group=this.value;renderClasses()"/></div>'+
+      '<div class="field-group"><label>Level</label><select id="cls'+i+'-lvl" onchange="s.classes['+i+'].level=this.value;renderClasses()"><option value="N5">N5</option><option value="Higher">Higher</option><option value="AH">AH</option><option value="Other">Other</option></select></div>'+
+      '<div class="field-group"><label>Periods/Wk</label><input type="number" id="cls'+i+'-ppw" value="'+(cls.periods_per_week||1)+'" min="1" max="30" style="width:60px" onchange="s.classes['+i+'].periods_per_week=parseInt(this.value)||1"/></div>'+
+      '<div class="field-group"><label>Sections</label><input type="number" id="cls'+i+'-sec" value="'+n+'" min="1" max="20" style="width:56px" onchange="onClassSectionsChange('+i+',parseInt(this.value)||1)"/></div>'+
+      '<div class="field-group"><label>Room</label><input type="text" id="cls'+i+'-room" value="'+esc(cls.room||"")+'" style="width:80px" onchange="s.classes['+i+'].room=this.value"/></div>'+
+      '<div class="field-group"><label>Teacher(s) per Section</label>'+stHtml+"</div>"+
+      '<div class="field-group"><label>Code(s)</label><div style="padding:.25rem 0;display:flex;gap:.25rem;flex-wrap:wrap">'+codeHtml+"</div></div>"+
+      "</div>"+
+      '<button class="btn-delete" onclick="removeClassAt('+i+')" title="Remove class">\u2715</button>';
     c.appendChild(div);
+    const lvlEl=document.getElementById("cls"+i+"-lvl");
+    if(lvlEl)lvlEl.value=cls.level||"Higher";
+    for(let j=0;j<n;j++){const el=document.getElementById("cls"+i+"-st"+j);if(el)el.value=(st[j]!==undefined?st[j]:"");}
   });
 }
+function onClassSectionsChange(i,n){n=Math.max(1,n);s.classes[i].sections=n;const st=s.classes[i].section_teachers||[];while(st.length<n)st.push("");s.classes[i].section_teachers=st.slice(0,n);renderClasses();}
+function removeClassAt(i){const cls=s.classes[i];s.placements=s.placements.filter(p=>p.class_id!==cls.id);if(_selectedPoolId===cls.id)_selectedPoolId=null;s.classes.splice(i,1);renderClasses();}
+function addClass(){const id=_nextId++;s.classes.push({id,subject:"Physics",year_group:"S4",level:"Higher",periods_per_week:4,sections:1,room:"",section_teachers:[""]});renderClasses();}
 
-function setYGCell(ygIdx, day, period, value) {
-  if (!s.year_groups[ygIdx].period_map[day]) s.year_groups[ygIdx].period_map[day] = {};
-  s.year_groups[ygIdx].period_map[day][period] = value.toUpperCase().trim();
-}
-
-function addYearGroup() {
-  s.year_groups.push({ name: "", period_map: {} });
-  renderYearGroups();
-}
-
-function onSettingsChange() {
-  s.days_per_week   = Math.max(1, parseInt(document.getElementById("tt-days").value) || 5);
-  s.periods_per_day = Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6);
-  renderYearGroups();
-}
-
-// ── Render: Teachers ──
-function renderTeachers() {
-  const c = document.getElementById("teachers-container");
-  c.innerHTML = "";
-  s.teachers.forEach((t, i) => {
-    const div = document.createElement("div");
-    div.className = "item-row";
-    div.innerHTML =
-      '<div class="field-group"><label>Name</label>' +
-      '<input type="text" value="' + esc(t.name) + '"' +
-      ' onchange="s.teachers[' + i + '].name=this.value; renderClasses()" /></div>' +
-      '<div class="field-group"><label>Non-Contact Periods / Week</label>' +
-      '<input type="number" value="' + (t.non_contact || 0) + '" min="0" style="width:68px"' +
-      ' onchange="s.teachers[' + i + '].non_contact=parseInt(this.value)||0" /></div>' +
-      '<div class="field-group" style="flex:1;min-width:0"><label>Unavailable Slots</label>' +
-      '<div class="slot-chips" id="t' + i + '-chips">' +
-      slotChipsHtml(t.unavailable, "_rmTSlot" + i) +
-      slotAddRowHtml("t" + i + "-ad", "t" + i + "-ap", "_addTSlot" + i) +
-      '</div></div>' +
-      '<button class="btn-delete" onclick="s.teachers.splice(' + i + ',1); renderAll()" title="Remove teacher">\u2715</button>';
-    c.appendChild(div);
-    _h["_addTSlot" + i] = () => {
-      const d = parseInt(document.getElementById("t" + i + "-ad").value);
-      const p = parseInt(document.getElementById("t" + i + "-ap").value);
-      if (d >= 1 && p >= 1) { s.teachers[i].unavailable.push([d, p]); renderTeachers(); }
-    };
-    _h["_rmTSlot" + i] = (j) => { s.teachers[i].unavailable.splice(j, 1); renderTeachers(); };
-  });
-}
-
-function addTeacher() {
-  s.teachers.push({ name: "", non_contact: 0, unavailable: [] });
-  renderTeachers();
-  renderClasses();
-}
-
-// ── Class field handlers ──
-function onClassYGChange(i, ygName) {
-  s.classes[i].year_group = ygName;
-  s.classes[i].column = "";   // reset column when year group changes
-  renderClasses();
-}
-
-function onClassColChange(i, col) {
-  s.classes[i].column = col;
-  renderClasses();  // refresh periods badge
-}
-
-function onClassSectionsChange(i, n) {
-  n = Math.max(1, n);
-  s.classes[i].sections = n;
-  // Resize section_teachers to match new section count
-  const st = s.classes[i].section_teachers || [];
-  while (st.length < n) st.push("");
-  s.classes[i].section_teachers = st.slice(0, n);
-  renderClasses();
-}
-
-// ── Render: Classes ──
-function renderClasses() {
-  const c = document.getElementById("classes-container");
-  c.innerHTML = "";
-
-  const ygOpts = s.year_groups.map(yg =>
-    '<option value="' + esc(yg.name) + '">' + esc(yg.name) + "</option>"
-  ).join("");
-
-  const teacherAnyOpt = '<option value="">Any teacher</option>';
-  const teacherOpts   = teacherAnyOpt +
-    s.teachers.map(t => '<option value="' + esc(t.name) + '">' + esc(t.name) + "</option>").join("");
-
-  s.classes.forEach((cls, i) => {
-    const div = document.createElement("div");
-    div.className = "item-row";
-
-    // Column options from selected year group
-    const availCols = getColumnsForYG(cls.year_group);
-    const colOpts = availCols.length > 0
-      ? availCols.map(col => '<option value="' + esc(col) + '">' + esc(col) + "</option>").join("")
-      : "";
-
-    // Code badges
-    const codes = getClassCodes(cls);
-    const codeHtml = codes.length > 0
-      ? codes.map(cd => '<span class="code-badge">' + esc(cd) + "</span>").join(" ")
-      : '<span style="color:#a0aec0;font-size:.75rem">\u2014</span>';
-
-    // Periods/week badge (auto-calculated from period map)
-    const ppw = getPeriodsForClass(cls);
-    const ppwHtml = '<span class="calc-badge' + (ppw === 0 ? " zero" : "") + '">' +
-      (ppw > 0 ? ppw + " / wk" : "\u2014 (select year group &amp; column)") + '</span>';
-
-    // Per-section teacher dropdowns
-    const n = parseInt(cls.sections) || 1;
-    const st = cls.section_teachers || [];
-    let stHtml = '<div class="section-teachers">';
-    for (let j = 0; j < n; j++) {
-      stHtml += '<div class="section-teacher-row">' +
-        '<span class="section-label">\u00a7' + (j + 1) + '</span>' +
-        '<select id="cls' + i + '-st' + j + '" onchange="s.classes[' + i +
-        '].section_teachers[' + j + ']=this.value">' + teacherOpts + '</select>' +
-        '</div>';
-    }
-    stHtml += '</div>';
-    // Teacher rule note
-    const assigned = (cls.section_teachers || []).slice(0, n);
-    const specific = assigned.filter(t => t && t.trim());
-    let ruleNote = "";
-    if (specific.length === 0) {
-      ruleNote = "Any available teacher will be used.";
-    } else if (n === 1 && specific.length === 1) {
-      ruleNote = "\u26a0 Hard: " + esc(specific[0]) + " must teach this class.";
-    } else if (specific.length === n && n > 1 && new Set(specific).size === n) {
-      ruleNote = "\u26a0 Hard: one teacher per section (1:1 rule).";
-    } else if (specific.length === n && n > 1) {
-      ruleNote = "\u26a0 Some sections share the same teacher \u2014 consider assigning different teachers.";
-    } else {
-      ruleNote = "Mixed: " + specific.length + " of " + n + " sections have a specific teacher.";
-    }
-
-    div.innerHTML =
-      '<div class="class-row-fields">' +
-
-      // Year Group
-      '<div class="field-group"><label>Year Group</label>' +
-      '<select id="cls' + i + '-yg" onchange="onClassYGChange(' + i + ',this.value)">' +
-      '<option value="">\u2014 select \u2014</option>' + ygOpts + '</select></div>' +
-
-      // Subject
-      '<div class="field-group"><label>Subject</label>' +
-      '<select id="cls' + i + '-subj" onchange="s.classes[' + i + '].subject=this.value; renderClasses()">' +
-      '<option value="Physics">Physics</option>' +
-      '<option value="Electronics">Electronics</option>' +
-      '</select></div>' +
-
-      // Level
-      '<div class="field-group"><label>Level</label>' +
-      '<select id="cls' + i + '-lvl" onchange="s.classes[' + i + '].level=this.value; renderClasses()">' +
-      '<option value="N5">N5</option>' +
-      '<option value="Higher">Higher</option>' +
-      '<option value="AH">AH</option>' +
-      '</select></div>' +
-
-      // Column (from year group)
-      '<div class="field-group"><label>Column</label>' +
-      '<select id="cls' + i + '-col" onchange="onClassColChange(' + i + ',this.value)">' +
-      '<option value="">\u2014</option>' + colOpts + '</select></div>' +
-
-      // Sections
-      '<div class="field-group"><label>Sections</label>' +
-      '<input type="number" id="cls' + i + '-sec" value="' + n + '" min="1" max="20" style="width:56px"' +
-      ' onchange="onClassSectionsChange(' + i + ',parseInt(this.value)||1)" /></div>' +
-
-      // Per-section teacher assignment
-      '<div class="field-group"><label>Teacher(s) per Section' +
-      ' <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:#718096">' +
-      ruleNote + '</span></label>' + stHtml + '</div>' +
-
-      // Code badges
-      '<div class="field-group" style="min-width:80px"><label>Code(s)</label>' +
-      '<div style="padding:.25rem 0;display:flex;gap:.25rem;flex-wrap:wrap">' + codeHtml + '</div></div>' +
-
-      // Periods/week (auto-calculated)
-      '<div class="field-group"><label>Periods/Wk</label>' +
-      '<div style="padding:.25rem 0">' + ppwHtml + '</div></div>' +
-
-      '</div>' +
-      '<button class="btn-delete" onclick="s.classes.splice(' + i + ',1); renderClasses()" title="Remove class">\u2715</button>';
-
-    c.appendChild(div);
-
-    // Set select values after innerHTML
-    document.getElementById("cls" + i + "-yg").value   = cls.year_group || "";
-    document.getElementById("cls" + i + "-col").value  = cls.column || "";
-    document.getElementById("cls" + i + "-subj").value = cls.subject || "Physics";
-    document.getElementById("cls" + i + "-lvl").value  = cls.level || "N5";
-    const stArr = cls.section_teachers || [];
-    for (let j = 0; j < n; j++) {
-      const el = document.getElementById("cls" + i + "-st" + j);
-      if (el) el.value = stArr[j] || "";
-    }
-  });
-}
-
-function addClass() {
-  s.classes.push({ year_group:"", subject:"Physics", level:"Higher", column:"", sections:1, section_teachers:[""] });
-  renderClasses();
-}
-
-// ── Render all ──
-function renderAll() { renderYearGroups(); renderTeachers(); renderClasses(); }
-
-// ── Load example ──
-function loadExample() {
-  s = JSON.parse(JSON.stringify(EXAMPLE));
-  document.getElementById("tt-name").value    = s.name;
-  document.getElementById("tt-days").value    = s.days_per_week;
-  document.getElementById("tt-periods").value = s.periods_per_day;
-  renderAll();
-}
-
-// ── Build config for API ──
-function buildConfig() {
-  const days    = Math.max(1, parseInt(document.getElementById("tt-days").value)    || 5);
-  const periods = Math.max(1, parseInt(document.getElementById("tt-periods").value) || 6);
-
-  // Collect unique column names
-  const colSet = new Set();
-  s.year_groups.forEach(yg => {
-    for (const d in yg.period_map) {
-      for (const p in yg.period_map[d]) {
-        const col = (yg.period_map[d][p] || "").trim().toUpperCase();
-        if (col) colSet.add(col);
-      }
-    }
-  });
-  s.classes.forEach(cls => { if (cls.column) colSet.add(cls.column.toUpperCase().trim()); });
-  const columns = [...colSet].sort().map(name => ({ name, unavailable: [] }));
-
-  // Expand classes to subjects with per-section teacher assignments
-  const subjects = [];
-  s.classes.forEach(cls => {
-    const codes = getClassCodes(cls);
-    const ppw   = getPeriodsForClass(cls) || 1;
-    const sectionTeachers = cls.section_teachers || [];
-    codes.forEach((code, j) => {
-      subjects.push({
-        name: code,
-        column: (cls.column || "").toUpperCase().trim(),
-        teacher: sectionTeachers[j] || "",
-        periods_per_week: ppw,
+// ── Step 2: Grid Placement ──
+function renderPlacementGrid(){
+  const days=s.days_per_week, periods=s.periods_per_day;
+  const layout=document.getElementById("placement-layout");
+  layout.innerHTML="";
+  const bySlot={};
+  s.placements.forEach(p=>{const k=p.day+","+p.period;(bySlot[k]=bySlot[k]||[]).push(p);});
+  // Grid
+  const wrapper=document.createElement("div");wrapper.className="placement-grid-wrapper";
+  const table=document.createElement("table");table.className="placement-table";
+  const thead=table.createTHead();const hrow=thead.insertRow();
+  const thE=document.createElement("th");hrow.appendChild(thE);
+  for(let d=1;d<=days;d++){const th=document.createElement("th");th.textContent=DAY_NAMES[d-1]||"Day "+d;hrow.appendChild(th);}
+  const tbody=table.createTBody();
+  for(let p=1;p<=periods;p++){
+    const tr=tbody.insertRow();
+    const tdL=tr.insertCell();tdL.className="period-label-cell";tdL.textContent="P"+p;
+    for(let d=1;d<=days;d++){
+      const td=tr.insertCell();td.className="grid-cell";
+      if(_selectedPoolId!==null)td.classList.add("selected-target");
+      td.dataset.day=d;td.dataset.period=p;
+      td.addEventListener("click",()=>cellClick(d,p));
+      (bySlot[d+","+p]||[]).forEach(pl=>{
+        const cls=s.classes.find(c=>c.id===pl.class_id);if(!cls)return;
+        const badge=document.createElement("div");badge.className="placed-badge";
+        const sn=classShortName(cls);
+        badge.innerHTML='<span class="placed-badge-text" title="'+esc(sn)+'">'+esc(sn)+'</span><button class="rm-btn" title="Remove">\u00d7</button>';
+        badge.querySelector(".rm-btn").addEventListener("click",ev=>{ev.stopPropagation();removePlacement(cls.id,d,p);});
+        td.appendChild(badge);
       });
+    }
+  }
+  wrapper.appendChild(table);layout.appendChild(wrapper);
+  // Pool
+  const pool=document.createElement("div");pool.className="class-pool";
+  pool.innerHTML="<h3>Classes to Place</h3>";
+  if(_selectedPoolId!==null){
+    const sel=s.classes.find(c=>c.id===_selectedPoolId);
+    if(sel)pool.innerHTML+='<p class="pool-hint">Selected: <strong>'+esc(classShortName(sel))+'</strong><br>Click a grid cell to place it, or click again to deselect.</p>';
+  } else {
+    pool.innerHTML+='<p class="pool-hint">Click a class to select it, then click a grid cell to place it.</p>';
+  }
+  if(s.classes.length===0){pool.innerHTML+='<p style="font-size:.8rem;color:#a0aec0">No classes defined. Go back to Step 1.</p>';}
+  else{
+    s.classes.forEach(cls=>{
+      const placed=s.placements.filter(p=>p.class_id===cls.id).length;
+      const total=cls.periods_per_week||1;const done=placed>=total;
+      const item=document.createElement("div");
+      item.className="pool-item"+(cls.id===_selectedPoolId?" selected":"")+(done?" complete":"");
+      item.innerHTML='<div class="pool-item-name">'+esc(classShortName(cls))+(cls.sections>1?' <small>('+cls.sections+' sections)</small>':'')+
+        '</div><div class="pool-item-counter">'+placed+" / "+total+" periods placed"+(done?" \u2713":"")+' </div>';
+      item.addEventListener("click",()=>selectPoolClass(cls.id));
+      pool.appendChild(item);
     });
-  });
+  }
+  layout.appendChild(pool);
+}
+function selectPoolClass(id){_selectedPoolId=(_selectedPoolId===id)?null:id;renderPlacementGrid();}
+function cellClick(day,period){
+  if(_selectedPoolId===null)return;
+  const cls=s.classes.find(c=>c.id===_selectedPoolId);if(!cls)return;
+  if(s.placements.find(p=>p.class_id===cls.id&&p.day===day&&p.period===period))return;
+  const placed=s.placements.filter(p=>p.class_id===cls.id).length;
+  const total=cls.periods_per_week||1;
+  if(placed>=total)return;
+  s.placements.push({class_id:cls.id,day,period});
+  if(placed+1>=total)_selectedPoolId=null;
+  renderPlacementGrid();
+}
+function removePlacement(classId,day,period){
+  const idx=s.placements.findIndex(p=>p.class_id===classId&&p.day===day&&p.period===period);
+  if(idx>=0){s.placements.splice(idx,1);renderPlacementGrid();}
+}
 
+// ── Step 3: Teachers ──
+function renderTeachers(){
+  const c=document.getElementById("teachers-container");c.innerHTML="";
+  s.teachers.forEach((t,i)=>{
+    const div=document.createElement("div");div.className="item-row";
+    div.innerHTML=
+      '<div class="field-group"><label>Name</label><input type="text" value="'+esc(t.name)+'" onchange="s.teachers['+i+'].name=this.value;renderClasses()"/></div>'+
+      '<div class="field-group"><label>Non-Contact Periods / Week</label><input type="number" value="'+(t.non_contact||0)+'" min="0" style="width:68px" onchange="s.teachers['+i+'].non_contact=parseInt(this.value)||0"/></div>'+
+      '<div class="field-group" style="flex:1;min-width:0"><label>Unavailable Slots</label><div class="slot-chips" id="t'+i+'-chips">'+
+      slotChipsHtml(t.unavailable,"_rmTSlot"+i)+slotAddRowHtml("t"+i+"-ad","t"+i+"-ap","_addTSlot"+i)+
+      '</div></div>'+
+      '<button class="btn-delete" onclick="s.teachers.splice('+i+',1);renderTeachers();renderClasses()" title="Remove teacher">\u2715</button>';
+    c.appendChild(div);
+    _h["_addTSlot"+i]=()=>{const d=parseInt(document.getElementById("t"+i+"-ad").value);const p=parseInt(document.getElementById("t"+i+"-ap").value);if(d>=1&&p>=1){s.teachers[i].unavailable.push([d,p]);renderTeachers();}};
+    _h["_rmTSlot"+i]=j=>{s.teachers[i].unavailable.splice(j,1);renderTeachers();};
+  });
+}
+function addTeacher(){s.teachers.push({name:"",non_contact:0,unavailable:[]});renderTeachers();renderClasses();}
+
+// ── Step 4: Auto-Assign ──
+function buildScheduleConfig(){
+  const columns=[],subjects=[];
+  const days=Math.max(1,parseInt(document.getElementById("tt-days").value)||5);
+  const periods=Math.max(1,parseInt(document.getElementById("tt-periods").value)||6);
+  s.classes.forEach(cls=>{
+    const placed=s.placements.filter(p=>p.class_id===cls.id);
+    if(placed.length===0)return;
+    const colName="COL_"+cls.id;
+    const pinnedSlots=placed.map(p=>[p.day,p.period]);
+    columns.push({name:colName,pinned_slots:pinnedSlots,unavailable:[]});
+    const sectionCount=parseInt(cls.sections)||1;
+    const teachers=cls.section_teachers||[];
+    let assigned;
+    if(teachers.length===1&&teachers[0])assigned=Array(sectionCount).fill(teachers[0]);
+    else if(teachers.length===sectionCount)assigned=teachers.map(t=>t||"");
+    else assigned=Array(sectionCount).fill("");
+    for(let j=0;j<sectionCount;j++){
+      subjects.push({name:getClassCode(cls,j+1),column:colName,teacher:assigned[j]||"",periods_per_week:placed.length,room:cls.room||null});
+    }
+  });
   return {
-    name: document.getElementById("tt-name").value.trim() || "Timetable",
-    days_per_week: days,
-    periods_per_day: periods,
-    year_groups: s.year_groups.map(yg => ({ name: yg.name, period_map: serializePeriodMap(yg.period_map) })),
-    teachers: s.teachers.map(t => ({ name: t.name, non_contact_entitlement: parseInt(t.non_contact)||0, unavailable: t.unavailable })),
-    columns,
-    subjects,
-    rooms: [],
-    classes: s.classes.map(cls => ({
-      year_group: cls.year_group,
-      subject: cls.subject,
-      level: cls.level,
-      column: (cls.column || "").toUpperCase().trim(),
-      sections: parseInt(cls.sections) || 1,
-      allowed_teachers: (cls.section_teachers || []).map(t => t || ""),
-      periods_per_week: getPeriodsForClass(cls) || 1,
-    })),
+    name:document.getElementById("tt-name").value.trim()||s.name||"Timetable",
+    days_per_week:days, periods_per_day:periods,
+    teachers:s.teachers.map(t=>({name:t.name,non_contact_entitlement:t.non_contact||0,unavailable:t.unavailable||[]})),
+    columns, subjects, rooms:[],
   };
 }
-
-// ── UI wiring ──
-const btnSchedule  = document.getElementById("btn-schedule");
-const btnReschedule = document.getElementById("btn-reschedule");
-const btnReset     = document.getElementById("btn-reset");
-const status       = document.getElementById("status");
-const placeholder  = document.getElementById("placeholder");
-const output       = document.getElementById("output");
-
-loadExample();
-goToStep(1);
-
-btnReset.addEventListener("click", () => { loadExample(); goToStep(1); clearOutput(); });
-
-function clearOutput() {
-  output.classList.add("hidden");
-  placeholder.classList.remove("hidden");
-  setStatus("","");
+async function runAutoAssign(){
+  const btn=document.getElementById("btn-assign");
+  const statusEl=document.getElementById("assign-status");
+  const outputEl=document.getElementById("assign-output");
+  const nextBtn=document.getElementById("btn-to-step5");
+  btn.disabled=true;setStatusMsg(statusEl,"Assigning teachers\u2026","");
+  try{
+    const cfg=buildScheduleConfig();
+    const resp=await fetch("/api/schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(cfg)});
+    const json=await resp.json();
+    if(!resp.ok){const msg=json.error||"Unknown error";const details=json.details?"\n\u2022"+json.details.join("\n\u2022"):"";setStatusMsg(statusEl,msg+details,"error");return;}
+    _scheduleResult=json;_step5Sessions=json.sessions.map(s=>Object.assign({},s));
+    outputEl.classList.remove("hidden");renderAssignResult(json);setStatusMsg(statusEl,"Done \u2713","ok");nextBtn.classList.remove("hidden");
+  }catch(e){setStatusMsg(statusEl,"Network error: "+e.message,"error");}
+  finally{btn.disabled=false;}
 }
-
-function setStatus(msg, type) {
-  status.textContent = msg;
-  status.className = type || "";
+function renderAssignResult(result){
+  const hard=result.conflicts.filter(c=>c.severity==="hard").length;
+  const soft=result.conflicts.filter(c=>c.severity==="soft").length;
+  document.getElementById("assign-stats").innerHTML=
+    '<div class="stat-box"><div class="label">Sessions placed</div><div class="value">'+result.sessions.length+"</div></div>"+
+    '<div class="stat-box"><div class="label">Hard conflicts</div><div class="value" style="color:'+(hard?"#e53e3e":"#38a169")+'">'+hard+"</div></div>"+
+    '<div class="stat-box"><div class="label">Soft warnings</div><div class="value" style="color:'+(soft?"#d69e2e":"#38a169")+'">'+soft+"</div></div>";
+  const conflictSlots=buildConflictSlotSet(result.conflicts);
+  renderResultGridInto("assign-grid",result.sessions,result.timetable,conflictSlots,false);
+  renderConflictListInto("assign-conflicts",result.conflicts);
 }
-
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+function buildConflictSlotSet(conflicts){const set=new Set();conflicts.forEach(c=>{if(c.day!=null&&c.period!=null)set.add(c.day+","+c.period);});return set;}
+function renderResultGridInto(containerId,sessions,timetable,conflictSlots,draggable){
+  const days=timetable.days_per_week,periods=timetable.periods_per_day;
+  const wrapper=document.getElementById(containerId);wrapper.innerHTML="";
+  const bySlot={};sessions.forEach(sess=>{const k=sess.day+","+sess.period;(bySlot[k]=bySlot[k]||[]).push(sess);});
+  const table=document.createElement("table");table.className="result-table";
+  const thead=table.createTHead();const hrow=thead.insertRow();
+  const thP=document.createElement("th");hrow.appendChild(thP);
+  for(let d=1;d<=days;d++){const th=document.createElement("th");th.textContent=DAY_NAMES[d-1]||"Day "+d;hrow.appendChild(th);}
+  const tbody=table.createTBody();
+  for(let p=1;p<=periods;p++){
+    const tr=tbody.insertRow();
+    const tdL=tr.insertCell();tdL.className="period-label-cell";tdL.textContent="P"+p;
+    for(let d=1;d<=days;d++){
+      const key=d+","+p;const td=tr.insertCell();td.className="result-cell";
+      if(conflictSlots.has(key))td.classList.add("conflict-cell");
+      if(draggable){
+        td.addEventListener("dragover",ev=>{ev.preventDefault();td.classList.add("drag-over");});
+        td.addEventListener("dragleave",()=>td.classList.remove("drag-over"));
+        td.addEventListener("drop",ev=>{ev.preventDefault();td.classList.remove("drag-over");handleDrop(d,p);});
+      }
+      (bySlot[key]||[]).forEach(sess=>{
+        const badge=document.createElement("div");
+        badge.className="session-badge"+(conflictSlots.has(key)?" conflict-badge":"")+(draggable?" draggable":"");
+        badge.innerHTML='<span class="sb-subject" title="'+esc(sess.subject)+'">'+esc(sess.subject)+"</span>"+'<span class="sb-teacher">'+esc(sess.teacher||"\u2014")+"</span>";
+        if(draggable){
+          badge.draggable=true;
+          badge.addEventListener("dragstart",ev=>{badge.classList.add("dragging");_draggingSession=sess;ev.dataTransfer.effectAllowed="move";});
+          badge.addEventListener("dragend",()=>badge.classList.remove("dragging"));
+        }
+        td.appendChild(badge);
+      });
+    }
+  }
+  wrapper.appendChild(table);
+}
+function renderConflictListInto(containerId,conflicts){
+  const container=document.getElementById(containerId);
+  if(conflicts.length===0){container.innerHTML='<p style="color:#38a169;font-size:.85rem;margin-top:.5rem">\u2713 No conflicts found.</p>';return;}
+  let html='<p class="conflict-panel-title">Conflicts &amp; Warnings</p><ul class="conflict-list">';
+  conflicts.forEach(c=>{
+    let loc="";if(c.day!=null){loc=" [Day "+c.day;if(c.period!=null)loc+=", P"+c.period;loc+="]";}
+    html+='<li class="'+esc(c.severity)+'"><span class="pill pill-'+esc(c.severity)+'">'+esc(c.severity.toUpperCase())+'</span> <strong>'+esc(c.category)+'</strong>: '+esc(c.description)+esc(loc)+"</li>";
   });
+  html+="</ul>";container.innerHTML=html;
+}
+
+// ── Step 5: Manual Resolution ──
+function renderResolutionGrid(){
+  if(!_scheduleResult)return;
+  const timetable=_scheduleResult.timetable;
+  const conflicts=computeClientConflicts(_step5Sessions);
+  const conflictSlots=buildConflictSlotSet(conflicts);
+  renderResultGridInto("resolve-grid",_step5Sessions,timetable,conflictSlots,true);
+  renderConflictListInto("resolve-conflicts",conflicts);
+  const statusEl=document.getElementById("resolve-status");
+  const hard=conflicts.filter(c=>c.severity==="hard").length;
+  setStatusMsg(statusEl,hard?hard+" conflict(s) remaining":"No conflicts \u2713",hard?"error":"ok");
+}
+function computeClientConflicts(sessions){
+  const conflicts=[];
+  const unavailMap={};
+  s.teachers.forEach(t=>{unavailMap[t.name]=new Set((t.unavailable||[]).map(sl=>sl[0]+","+sl[1]));});
+  const bySlot={};sessions.forEach(sess=>{const k=sess.day+","+sess.period;(bySlot[k]=bySlot[k]||[]).push(sess);});
+  Object.entries(bySlot).forEach(([key,list])=>{
+    const [day,period]=key.split(",").map(Number);const seen={};
+    list.forEach(sess=>{
+      if(!sess.teacher)return;
+      if(seen[sess.teacher]){conflicts.push({severity:"hard",category:"teacher_double_booked",description:sess.teacher+" is teaching two classes at the same time",day,period,subjects:[sess.subject,seen[sess.teacher].subject]});}
+      else seen[sess.teacher]=sess;
+      if(unavailMap[sess.teacher]&&unavailMap[sess.teacher].has(key)){conflicts.push({severity:"hard",category:"teacher_unavailable",description:sess.teacher+" is unavailable at this slot",day,period,subjects:[sess.subject]});}
+    });
+  });
+  return conflicts;
+}
+function handleDrop(targetDay,targetPeriod){
+  if(!_draggingSession)return;
+  const src=_draggingSession;
+  _step5Sessions.forEach(sess=>{if(sess.subject===src.subject&&sess.day===src.day&&sess.period===src.period){sess.day=targetDay;sess.period=targetPeriod;}});
+  _draggingSession=null;renderResolutionGrid();
+}
+
+// ── Load / Reset ──
+function loadExample(){
+  s=JSON.parse(JSON.stringify(EXAMPLE));
+  _nextId=Math.max(...s.classes.map(c=>c.id+1),0);
+  document.getElementById("tt-name").value=s.name;
+  document.getElementById("tt-days").value=s.days_per_week;
+  document.getElementById("tt-periods").value=s.periods_per_day;
+  renderClasses();
+}
+document.getElementById("btn-reset").addEventListener("click",()=>{
+  _scheduleResult=null;_step5Sessions=[];
+  document.getElementById("assign-output").classList.add("hidden");
+  document.getElementById("btn-to-step5").classList.add("hidden");
+  loadExample();goToStep(1);
 });
-
-async function runSchedule() {
-  const data = buildConfig();
-  btnSchedule.disabled = true;
-  if (btnReschedule) btnReschedule.disabled = true;
-  setStatus("Scheduling\u2026", "");
-  try {
-    const resp = await fetch("/api/schedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const json = await resp.json();
-    if (!resp.ok) {
-      const msg     = json.error || "Unknown error";
-      const details = json.details ? "\n\u2022 " + json.details.join("\n\u2022 ") : "";
-      setStatus(msg + details, "error");
-      return;
-    }
-    renderResults(json, data);
-    renderSplitClassReview(json);
-    goToStep(4);
-    setStatus("Done \u2713", "ok");
-    document.getElementById("step-4").scrollIntoView({ behavior: "smooth" });
-  } catch (e) {
-    setStatus("Network error: " + e.message, "error");
-  } finally {
-    btnSchedule.disabled = false;
-    if (btnReschedule) btnReschedule.disabled = false;
-  }
-}
-
-btnSchedule.addEventListener("click", runSchedule);
-if (btnReschedule) btnReschedule.addEventListener("click", runSchedule);
-
-// ── Results rendering ──
-function renderResults(result, cfg) {
-  placeholder.classList.add("hidden");
-  output.classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  document.querySelector('[data-tab="timetable"]').classList.add("active");
-  document.getElementById("tab-timetable").classList.add("active");
-
-  const hard = result.conflicts.filter(c => c.severity === "hard").length;
-  const soft = result.conflicts.filter(c => c.severity === "soft").length;
-  document.getElementById("stats").innerHTML =
-    '<div class="stat-box"><div class="label">Sessions placed</div><div class="value">' + result.sessions.length + "</div></div>" +
-    '<div class="stat-box"><div class="label">Hard conflicts</div>' +
-    '<div class="value" style="color:' + (hard ? "#e53e3e" : "#38a169") + '">' + hard + "</div></div>" +
-    '<div class="stat-box"><div class="label">Soft warnings</div>' +
-    '<div class="value" style="color:' + (soft ? "#d69e2e" : "#38a169") + '">' + soft + "</div></div>" +
-    '<div class="stat-box"><div class="label">Timetable</div>' +
-    '<div class="value" style="font-size:1rem;padding-top:.25rem">' + esc(result.timetable.name) + "</div></div>";
-
-  renderGrid(result.sessions, result.timetable.days_per_week, result.timetable.periods_per_day);
-
-  const tbody = document.getElementById("sessions-body");
-  tbody.innerHTML = "";
-  result.sessions.forEach(sess => {
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      "<td>" + (DAY_NAMES[sess.day-1] || "Day "+sess.day) + "</td>" +
-      "<td>P" + sess.period + "</td>" +
-      "<td>" + esc(sess.column) + "</td>" +
-      "<td>" + esc(sess.subject) + "</td>" +
-      "<td>" + esc(sess.teacher || "\u2014") + "</td>" +
-      "<td>" + esc(sess.room) + "</td>";
-    tbody.appendChild(tr);
-  });
-
-  const cl = document.getElementById("conflict-list");
-  const nc = document.getElementById("no-conflicts");
-  cl.innerHTML = "";
-  if (result.conflicts.length === 0) {
-    nc.classList.remove("hidden");
-  } else {
-    nc.classList.add("hidden");
-    result.conflicts.forEach(conf => {
-      const li = document.createElement("li");
-      li.className = conf.severity;
-      let loc = "";
-      if (conf.day != null) {
-        loc = " [Day " + conf.day;
-        if (conf.period != null) loc += ", P" + conf.period;
-        loc += "]";
-      }
-      li.innerHTML = '<span class="pill pill-' + esc(conf.severity) + '">' +
-        esc(conf.severity.toUpperCase()) + '</span> <strong>' +
-        esc(conf.category) + "</strong>: " + esc(conf.description) + esc(loc);
-      cl.appendChild(li);
-    });
-  }
-}
-
-// ── Split class review ──
-function renderSplitClassReview(result) {
-  const container = document.getElementById("split-class-review");
-  const multiSection = s.classes.filter(cls => (parseInt(cls.sections) || 1) > 1);
-
-  if (multiSection.length === 0) {
-    container.innerHTML = '<p style="color:#718096;font-size:.82rem">No multi-section classes in this timetable.</p>';
-    return;
-  }
-
-  // Build session lookup: subject_code → {teacher, slots[]}
-  const sessionMap = {};
-  result.sessions.forEach(sess => {
-    if (!sessionMap[sess.subject]) sessionMap[sess.subject] = { teacher: sess.teacher, slots: [] };
-    sessionMap[sess.subject].slots.push({ day: sess.day, period: sess.period });
-  });
-
-  const teacherAnyOpt = '<option value="">Any teacher</option>';
-  const teacherOpts   = teacherAnyOpt +
-    s.teachers.map(t => '<option value="' + esc(t.name) + '">' + esc(t.name) + "</option>").join("");
-
-  let html = "";
-  multiSection.forEach(cls => {
-    const realIdx = s.classes.indexOf(cls);
-    const codes   = getClassCodes(cls);
-    const codeBase = codes.length > 0 ? codes[0].split("-").slice(0, -1).join("-") : "";
-
-    // Detect conflict: parallel sections (same column) both assigned to the same teacher
-    const assignedTeachers = codes.map(code => (sessionMap[code] || {}).teacher || "");
-    const allSame = assignedTeachers.length > 1 &&
-      assignedTeachers.every(t => t && t === assignedTeachers[0]);
-    const isConflict = allSame;
-
-    html += '<div class="split-class-card' + (isConflict ? " conflict" : "") + '">';
-    html += '<div class="split-class-title">' + esc(codeBase) + '</div>';
-
-    if (isConflict) {
-      html += '<div class="split-conflict-warning">' +
-        '\u26a0 All sections are assigned to the same teacher (' + esc(assignedTeachers[0]) +
-        '). Sections in the same column run in parallel \u2014 assign different teachers ' +
-        'below and click <strong>Apply &amp; Re-schedule</strong>.' +
-        '</div>';
-    }
-
-    html += '<table class="split-table"><thead><tr>' +
-      '<th>Section</th><th>Scheduled Slots</th><th>Assigned Teacher</th><th>Change Teacher</th>' +
-      '</tr></thead><tbody>';
-
-    codes.forEach((code, j) => {
-      const info     = sessionMap[code] || { teacher: "", slots: [] };
-      const slotText = info.slots.map(sl => (DAY_NAMES[sl.day-1]||"Day "+sl.day) + " P" + sl.period).join(", ") || "\u2014";
-      html += '<tr>' +
-        '<td><span class="code-badge">' + esc(code) + "</span></td>" +
-        '<td style="font-size:.75rem">' + esc(slotText) + "</td>" +
-        '<td>' + esc(info.teacher || "\u2014") + "</td>" +
-        '<td><select id="scr-' + realIdx + '-' + j + '"' +
-        ' onchange="updateSectionTeacher(' + realIdx + ',' + j + ',this.value)">' +
-        teacherOpts + "</select></td>" +
-        "</tr>";
-    });
-
-    html += "</tbody></table></div>";
-  });
-
-  container.innerHTML = html;
-
-  // Set current teacher values in dropdowns
-  multiSection.forEach(cls => {
-    const realIdx = s.classes.indexOf(cls);
-    const codes   = getClassCodes(cls);
-    codes.forEach((code, j) => {
-      const info = sessionMap[code] || {};
-      const el   = document.getElementById("scr-" + realIdx + "-" + j);
-      if (el) el.value = info.teacher || "";
-    });
-  });
-}
-
-/** Update a section's teacher assignment from the split-class review panel. */
-function updateSectionTeacher(clsIdx, sectionIdx, teacher) {
-  if (!s.classes[clsIdx].section_teachers) s.classes[clsIdx].section_teachers = [];
-  // Ensure array is long enough
-  const n = parseInt(s.classes[clsIdx].sections) || 1;
-  while (s.classes[clsIdx].section_teachers.length < n)
-    s.classes[clsIdx].section_teachers.push("");
-  s.classes[clsIdx].section_teachers[sectionIdx] = teacher;
-}
-
-function renderGrid(sessions, daysPerWeek, periodsPerDay) {
-  const bySlot = {};
-  sessions.forEach(sess => {
-    const key = sess.day + "," + sess.period;
-    (bySlot[key] = bySlot[key] || []).push(sess);
-  });
-
-  const table = document.createElement("table");
-  const thead = table.createTHead();
-  const hrow  = thead.insertRow();
-  const thP   = document.createElement("th");
-  hrow.appendChild(thP);
-  for (let d = 1; d <= daysPerWeek; d++) {
-    const th = document.createElement("th");
-    th.textContent = DAY_NAMES[d-1] || "Day " + d;
-    hrow.appendChild(th);
-  }
-
-  const tbody = table.createTBody();
-  for (let p = 1; p <= periodsPerDay; p++) {
-    const tr = tbody.insertRow();
-    const tdLabel = tr.insertCell();
-    tdLabel.textContent = "P" + p;
-    tdLabel.style.fontWeight = "600";
-    tdLabel.style.background = "#edf2f7";
-    for (let d = 1; d <= daysPerWeek; d++) {
-      const td    = tr.insertCell();
-      const key   = d + "," + p;
-      const items = bySlot[key] || [];
-      if (items.length === 0) {
-        td.style.color = "#a0aec0";
-        td.textContent = "\u2014";
-      } else {
-        td.innerHTML = items.map(sess =>
-          '<div style="margin-bottom:.2rem"><strong>' + esc(sess.subject) + "</strong><br/>" +
-          '<span style="color:#718096;font-size:.72rem">' + esc(sess.teacher || "\u2014") + " \xb7 " + esc(sess.room) + "</span></div>"
-        ).join("");
-      }
-    }
-  }
-
-  const container = document.getElementById("grid-container");
-  container.innerHTML = "";
-  container.appendChild(table);
-}
+loadExample();goToStep(1);
 </script>
 </body>
 </html>

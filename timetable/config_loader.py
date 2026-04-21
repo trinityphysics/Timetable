@@ -44,8 +44,11 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
         config.rooms.append(Room(name=r["name"], capacity=r.get("capacity", 30)))
 
     for c in data.get("columns", []):
-        unavailable = [_to_slot(p) for p in c.get("unavailable", [])]
-        config.columns.append(Column(name=c["name"], unavailable=unavailable))
+        unavailable    = [_to_slot(p) for p in c.get("unavailable",   [])]
+        pinned_slots   = [_to_slot(p) for p in c.get("pinned_slots",  [])]
+        config.columns.append(
+            Column(name=c["name"], unavailable=unavailable, pinned_slots=pinned_slots)
+        )
 
     for s in data.get("subjects", []):
         preferred = [_to_slot(p) for p in s.get("preferred_periods", [])]
