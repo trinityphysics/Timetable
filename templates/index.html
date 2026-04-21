@@ -210,8 +210,9 @@
       Configure the timetable and enter each class to be scheduled.
       For each class specify the subject, year group, level, how many periods per week
       it meets, the number of parallel sections, an optional preferred room, and optionally
-      which teacher should take each section (leave on <em>Any teacher</em> for automatic
-      assignment in Step 4).
+      which teacher should take each section. A teacher selected here is a
+      <strong>hard rule</strong> &mdash; that teacher will be required to take that class.
+      Leave on <em>Any teacher</em> for automatic assignment in Step 4.
     </p>
     <div class="settings-row">
       <div class="field-group">
@@ -318,6 +319,9 @@
 
 <script>
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const SUBJECT_OPTIONS = ["Physics","Electronics","Mathematics","Chemistry","Biology","Computing","English","History","Geography","Art","Music","PE","RE","Other"];
+const YEAR_GROUP_OPTIONS = ["S1","S2","S3","S4","S5","S6"];
+const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 
 // ── State ──
 let s = { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] };
@@ -394,19 +398,28 @@ function renderClasses(){
     for(let j=0;j<n;j++){stHtml+='<div class="section-teacher-row"><span class="section-label">\u00a7'+(j+1)+'</span><select id="cls'+i+'-st'+j+'" onchange="s.classes['+i+'].section_teachers['+j+']=this.value">'+teacherOpts+"</select></div>";}
     stHtml+="</div>";
     const codeHtml=getClassCodes(cls).map(cd=>'<span class="code-badge">'+esc(cd)+"</span>").join(" ");
+    const subjectOpts=SUBJECT_OPTIONS.map(v=>'<option value="'+esc(v)+'">'+esc(v)+"</option>").join("");
+    const yearGroupOpts=YEAR_GROUP_OPTIONS.map(v=>'<option value="'+esc(v)+'">'+esc(v)+"</option>").join("");
+    const levelOpts=LEVEL_OPTIONS.map(v=>'<option value="'+esc(v)+'">'+esc(v)+"</option>").join("");
+    const colName="COL_"+cls.id;
     div.innerHTML=
       '<div style="display:flex;flex-wrap:wrap;gap:.5rem;flex:1;align-items:flex-start">'+
-      '<div class="field-group"><label>Subject</label><input type="text" id="cls'+i+'-subj" value="'+esc(cls.subject||"")+'" style="min-width:100px" onchange="s.classes['+i+'].subject=this.value;renderClasses()"/></div>'+
-      '<div class="field-group"><label>Year Group</label><input type="text" id="cls'+i+'-yg" value="'+esc(cls.year_group||"")+'" style="width:66px" onchange="s.classes['+i+'].year_group=this.value;renderClasses()"/></div>'+
-      '<div class="field-group"><label>Level</label><select id="cls'+i+'-lvl" onchange="s.classes['+i+'].level=this.value;renderClasses()"><option value="N5">N5</option><option value="Higher">Higher</option><option value="AH">AH</option><option value="Other">Other</option></select></div>'+
+      '<div class="field-group"><label>Column</label><div style="padding:.25rem 0"><span class="code-badge" title="Unique column identifier">'+esc(colName)+'</span></div></div>'+
+      '<div class="field-group"><label>Subject</label><select id="cls'+i+'-subj" onchange="s.classes['+i+'].subject=this.value;renderClasses()">'+subjectOpts+'</select></div>'+
+      '<div class="field-group"><label>Year Group</label><select id="cls'+i+'-yg" onchange="s.classes['+i+'].year_group=this.value;renderClasses()">'+yearGroupOpts+'</select></div>'+
+      '<div class="field-group"><label>Level</label><select id="cls'+i+'-lvl" onchange="s.classes['+i+'].level=this.value;renderClasses()">'+levelOpts+'</select></div>'+
       '<div class="field-group"><label>Periods/Wk</label><input type="number" id="cls'+i+'-ppw" value="'+(cls.periods_per_week||1)+'" min="1" max="30" style="width:60px" onchange="s.classes['+i+'].periods_per_week=parseInt(this.value)||1"/></div>'+
       '<div class="field-group"><label>Sections</label><input type="number" id="cls'+i+'-sec" value="'+n+'" min="1" max="20" style="width:56px" onchange="onClassSectionsChange('+i+',parseInt(this.value)||1)"/></div>'+
       '<div class="field-group"><label>Room</label><input type="text" id="cls'+i+'-room" value="'+esc(cls.room||"")+'" style="width:80px" onchange="s.classes['+i+'].room=this.value"/></div>'+
-      '<div class="field-group"><label>Teacher(s) per Section</label>'+stHtml+"</div>"+
+      '<div class="field-group"><label>Assigned Teacher(s) <span style="font-size:.65rem;color:#e53e3e;font-weight:700">(hard rule)</span></label>'+stHtml+"</div>"+
       '<div class="field-group"><label>Code(s)</label><div style="padding:.25rem 0;display:flex;gap:.25rem;flex-wrap:wrap">'+codeHtml+"</div></div>"+
       "</div>"+
       '<button class="btn-delete" onclick="removeClassAt('+i+')" title="Remove class">\u2715</button>';
     c.appendChild(div);
+    const subjEl=document.getElementById("cls"+i+"-subj");
+    if(subjEl)subjEl.value=cls.subject||"Physics";
+    const ygEl=document.getElementById("cls"+i+"-yg");
+    if(ygEl)ygEl.value=cls.year_group||"S4";
     const lvlEl=document.getElementById("cls"+i+"-lvl");
     if(lvlEl)lvlEl.value=cls.level||"Higher";
     for(let j=0;j<n;j++){const el=document.getElementById("cls"+i+"-st"+j);if(el)el.value=(st[j]!==undefined?st[j]:"");}
