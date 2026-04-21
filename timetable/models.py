@@ -137,6 +137,14 @@ class TimetableConfig:
     name: str = "Timetable"
     days_per_week: int = 5
     periods_per_day: int = 6
+    # Optional per-day period counts (overrides periods_per_day for specific days).
+    # Keys are 1-indexed day numbers; unspecified days use periods_per_day.
+    # Example: {1: 7, 2: 7} → Mon and Tue have 7 periods, other days use the default.
+    day_lengths: Dict[int, int] = field(default_factory=dict)
+    # Slots that together constitute one "tutor time" session.
+    # Typically two shortened periods on Monday and Tuesday (e.g. [(1, 7), (2, 7)]).
+    # When non-empty, the reporter flags which teachers are free for these slots.
+    tutor_time_slots: List[Slot] = field(default_factory=list)
     teachers: List[Teacher] = field(default_factory=list)
     rooms: List[Room] = field(default_factory=list)
     subjects: List[Subject] = field(default_factory=list)
@@ -145,12 +153,20 @@ class TimetableConfig:
     year_groups: List[YearGroup] = field(default_factory=list)
     classes: List[Class] = field(default_factory=list)
 
+    def periods_on_day(self, day: int) -> int:
+        """Return the number of periods on *day* (1-indexed), respecting day_lengths."""
+        return self.day_lengths.get(day, self.periods_per_day)
+
+    def total_slots(self) -> int:
+        """Return total number of schedulable slots across the whole week."""
+        return sum(self.periods_on_day(d) for d in range(1, self.days_per_week + 1))
+
     def all_slots(self) -> List[Slot]:
         """Return every (day, period) slot in the week."""
         return [
             (day, period)
             for day in range(1, self.days_per_week + 1)
-            for period in range(1, self.periods_per_day + 1)
+            for period in range(1, self.periods_on_day(day) + 1)
         ]
 
 

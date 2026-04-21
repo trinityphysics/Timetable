@@ -157,3 +157,90 @@ def test_load_config_example_file():
     assert config.name == "Example School Timetable"
     assert len(config.subjects) == 7
     assert len(config.teachers) == 4
+
+
+# ---------------------------------------------------------------------------
+# day_lengths and tutor_time_slots
+# ---------------------------------------------------------------------------
+
+
+def test_parse_config_day_lengths():
+    data = _minimal_data()
+    data["day_lengths"] = {"1": 7, "2": 7}
+    config = parse_config(data)
+    assert config.periods_on_day(1) == 7
+    assert config.periods_on_day(2) == 7
+    # Unspecified days fall back to periods_per_day (6)
+    assert config.periods_on_day(3) == 6
+
+
+def test_parse_config_day_lengths_integer_keys():
+    """JSON may decode keys as strings; config_loader must handle both."""
+    data = _minimal_data()
+    data["day_lengths"] = {1: 5, 3: 4}  # integer keys
+    config = parse_config(data)
+    assert config.periods_on_day(1) == 5
+    assert config.periods_on_day(3) == 4
+
+
+def test_parse_config_tutor_time_slots():
+    data = _minimal_data()
+    data["tutor_time_slots"] = [[1, 7], [2, 7]]
+    data["day_lengths"] = {"1": 7, "2": 7}
+    config = parse_config(data)
+    assert (1, 7) in config.tutor_time_slots
+    assert (2, 7) in config.tutor_time_slots
+
+
+def test_all_slots_respects_day_lengths():
+    data = _minimal_data()
+    data["day_lengths"] = {"1": 7, "2": 7}
+    config = parse_config(data)
+    slots = config.all_slots()
+    # Day 1 and 2 should have period 7
+    assert (1, 7) in slots
+    assert (2, 7) in slots
+    # Day 3 should not have period 7 (only 6 periods)
+    assert (3, 7) not in slots
+
+
+def test_total_slots_with_day_lengths():
+    data = _minimal_data()
+    data["day_lengths"] = {"1": 7, "2": 7}
+    config = parse_config(data)
+    # 7 + 7 + 6 + 6 + 6 = 32
+    assert config.total_slots() == 32
+
+
+def test_validate_config_day_lengths_out_of_range_day():
+    data = _minimal_data()
+    data["day_lengths"] = {"99": 3}
+    config = parse_config(data)
+    errors = validate_config(config)
+    assert any("day 99" in e and "out of range" in e for e in errors)
+
+
+def test_validate_config_day_lengths_zero_periods():
+    data = _minimal_data()
+    data["day_lengths"] = {"1": 0}
+    config = parse_config(data)
+    errors = validate_config(config)
+    assert any("day 1" in e and "at least 1 period" in e for e in errors)
+
+
+def test_validate_config_tutor_time_slot_out_of_range():
+    data = _minimal_data()
+    data["tutor_time_slots"] = [[1, 99]]
+    config = parse_config(data)
+    errors = validate_config(config)
+    assert any("tutor_time_slots" in e and "out of range" in e for e in errors)
+
+
+def test_validate_config_tutor_time_slot_in_day_length_range():
+    """A tutor-time slot that is valid only because of day_lengths should pass."""
+    data = _minimal_data()
+    data["day_lengths"] = {"1": 7}
+    data["tutor_time_slots"] = [[1, 7]]
+    config = parse_config(data)
+    errors = validate_config(config)
+    assert not any("tutor_time_slots" in e for e in errors)

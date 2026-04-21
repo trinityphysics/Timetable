@@ -32,6 +32,7 @@ from timetable.reporter import (
     format_timetable_by_room,
     format_timetable_by_teacher,
     format_timetable_text,
+    format_tutor_time_notification,
     to_csv,
     to_json,
 )
@@ -133,6 +134,11 @@ def main(argv=None) -> int:
 
     # --- Summary ---
     print(format_summary(assignments, conflicts, config))
+
+    # --- Tutor time ---
+    tutor_msg = format_tutor_time_notification(assignments, config)
+    if tutor_msg:
+        print(tutor_msg)
 
     # --- Interactive review ---
     if args.interactive:
