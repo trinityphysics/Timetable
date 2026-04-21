@@ -84,13 +84,14 @@ def further_checks(assignments, config) -> None:
         for day, count in sorted(days.items()):
             label = f"  {teacher}: Day {day} → {count} period(s)"
             print(label)
-            if count > config.periods_per_day * 0.7:
+            if count > config.periods_on_day(day) * 0.7:
                 overloaded.append((teacher, day, count))
 
     if overloaded:
         print("\n  The following teacher-day combinations look heavy (>70% of periods):")
         for teacher, day, count in overloaded:
-            print(f"    {teacher} on day {day}: {count}/{config.periods_per_day}")
+            n = config.periods_on_day(day)
+            print(f"    {teacher} on day {day}: {count}/{n}")
         answer = input("  Proceed anyway? (y/n) [y]: ").strip().lower()
         if answer in ("n", "no"):
             print("  → Flagged. Adjust the config to reduce daily loads.")

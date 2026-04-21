@@ -257,3 +257,45 @@ def test_example_config_schedules_without_hard_conflicts():
             f"{subj.name}: expected {subj.periods_per_week}, "
             f"got {subject_counts[subj.name]}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Variable day lengths
+# ---------------------------------------------------------------------------
+
+
+def test_scheduler_uses_extra_period_on_longer_day():
+    """When day 1 has 7 periods the scheduler can use slot (1, 7)."""
+    config = make_config(
+        days=5,
+        periods=6,
+        teachers=[Teacher("T")],
+        rooms=[Room("R")],
+        columns=[Column("A")],
+        subjects=[Subject("Math", "A", "T", periods_per_week=6)],
+    )
+    config.day_lengths = {1: 7}
+
+    assignments, conflicts = Scheduler(config).schedule()
+    hard = [c for c in conflicts if c.severity == "hard"]
+    assert hard == [], f"Unexpected hard conflicts: {hard}"
+    assert len(assignments) == 6
+
+
+def test_scheduler_does_not_use_slot_beyond_short_day():
+    """If day 5 has only 3 periods, slot (5, 4) must never be assigned."""
+    config = make_config(
+        days=5,
+        periods=6,
+        teachers=[Teacher("T")],
+        rooms=[Room("R")],
+        columns=[Column("A")],
+        subjects=[Subject("Math", "A", "T", periods_per_week=3)],
+    )
+    config.day_lengths = {5: 3}
+
+    assignments, _ = Scheduler(config).schedule()
+    for a in assignments:
+        if a.day == 5:
+            assert a.period <= 3, f"Slot (5, {a.period}) beyond day-5 length of 3"
+

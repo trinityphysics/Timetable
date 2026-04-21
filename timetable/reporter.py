@@ -33,6 +33,7 @@ def format_timetable_text(
 
     Rows = periods, Columns = days.
     Each cell lists the subjects (with teacher / room) running in that slot.
+    Days with fewer periods than the maximum show '—' in the extra rows.
     """
     # Build lookup: slot -> list of assignments
     by_slot: Dict = defaultdict(list)
@@ -40,13 +41,18 @@ def format_timetable_text(
         by_slot[(a.day, a.period)].append(a)
 
     days = list(range(1, config.days_per_week + 1))
-    periods = list(range(1, config.periods_per_day + 1))
+    # Use the maximum periods across all days to determine the number of rows
+    max_periods = max(config.periods_on_day(d) for d in days)
+    periods = list(range(1, max_periods + 1))
 
     # Column widths
     day_labels = [_day_label(d) for d in days]
 
     # Build cell contents
     def cell_text(day: int, period: int) -> str:
+        # Mark slots that don't exist for this day
+        if period > config.periods_on_day(day):
+            return "—"
         items = by_slot.get((day, period), [])
         if not items:
             return ""
@@ -170,7 +176,7 @@ def format_summary(
     conflicts: List[Conflict],
     config: TimetableConfig,
 ) -> str:
-    total = config.days_per_week * config.periods_per_day
+    total = config.total_slots()
     scheduled = len(assignments)
     hard = sum(1 for c in conflicts if c.severity == "hard")
     soft = sum(1 for c in conflicts if c.severity == "soft")
@@ -178,11 +184,20 @@ def format_summary(
     teachers_used = len({a.teacher for a in assignments})
     rooms_used = len({a.room for a in assignments})
 
+    # Day-length summary line (only shown when per-day lengths differ)
+    day_lengths_line = ""
+    if config.day_lengths:
+        parts = []
+        for d in range(1, config.days_per_week + 1):
+            n = config.periods_on_day(d)
+            parts.append(f"{_day_label(d)}:{n}")
+        day_lengths_line = f"\n  Day lengths       : {', '.join(parts)}"
+
     lines = [
         "\n=== Summary ===",
         f"  Timetable name   : {config.name}",
         f"  Days per week    : {config.days_per_week}",
-        f"  Periods per day  : {config.periods_per_day}",
+        f"  Periods per day  : {config.periods_per_day}{day_lengths_line}",
         f"  Total slots      : {total}",
         f"  Sessions placed  : {scheduled}",
         f"  Teachers active  : {teachers_used}",
@@ -191,6 +206,57 @@ def format_summary(
         f"  Soft warnings    : {soft}",
         "",
     ]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Tutor-time notification
+# ---------------------------------------------------------------------------
+
+
+def format_tutor_time_notification(
+    assignments: List[Assignment],
+    config: TimetableConfig,
+) -> str:
+    """
+    Report which teachers are available to take tutor time.
+
+    Tutor time occupies the slots listed in ``config.tutor_time_slots``
+    (typically the two shortened periods on Monday and Tuesday that together
+    equal one full period).  A teacher is available if *all* of those slots
+    are free in their scheduled timetable and not in their unavailable list.
+
+    Returns an empty string when no tutor-time slots are configured.
+    """
+    if not config.tutor_time_slots:
+        return ""
+
+    # Slots each teacher is actually scheduled in
+    scheduled_slots: Dict[str, set] = defaultdict(set)
+    for a in assignments:
+        if a.teacher:
+            scheduled_slots[a.teacher].add(a.slot)
+
+    available = []
+    for teacher in config.teachers:
+        free = all(
+            slot not in scheduled_slots[teacher.name]
+            and slot not in teacher.unavailable
+            for slot in config.tutor_time_slots
+        )
+        if free:
+            available.append(teacher.name)
+
+    slot_desc = ", ".join(f"{_day_label(d)} P{p}" for d, p in config.tutor_time_slots)
+    lines = [f"\n=== Tutor Time Availability ({slot_desc}) ==="]
+
+    if available:
+        for name in available:
+            lines.append(f"  ✓ {name} can be given tutor time")
+    else:
+        lines.append("  No teachers have all tutor-time slots free.")
+
+    lines.append("")
     return "\n".join(lines)
 
 

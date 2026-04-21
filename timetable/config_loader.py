@@ -21,6 +21,15 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
         periods_per_day=int(data.get("periods_per_day", 6)),
     )
 
+    # Per-day period counts (keys may arrive as strings from JSON)
+    raw_day_lengths = data.get("day_lengths", {})
+    config.day_lengths = {int(k): int(v) for k, v in raw_day_lengths.items()}
+
+    # Tutor-time slots (list of [day, period] pairs)
+    config.tutor_time_slots = [
+        _to_slot(s) for s in data.get("tutor_time_slots", [])
+    ]
+
     for t in data.get("teachers", []):
         unavailable = [_to_slot(p) for p in t.get("unavailable", [])]
         config.teachers.append(
@@ -158,7 +167,26 @@ def validate_config(config: TimetableConfig) -> List[str]:
     if config.periods_per_day < 1:
         errors.append("periods_per_day must be at least 1.")
 
-    total_slots = config.days_per_week * config.periods_per_day
+    # Validate per-day lengths
+    for day, length in config.day_lengths.items():
+        if not (1 <= day <= config.days_per_week):
+            errors.append(
+                f"day_lengths: day {day} is out of range "
+                f"(1–{config.days_per_week})."
+            )
+        if length < 1:
+            errors.append(
+                f"day_lengths: day {day} must have at least 1 period."
+            )
+
+    total_slots = config.total_slots()
+
+    # Validate tutor time slots
+    for slot in config.tutor_time_slots:
+        if not _valid_slot(slot, config):
+            errors.append(
+                f"tutor_time_slots: slot {slot} is out of range."
+            )
 
     # Validate subjects
     seen_names: set = set()
@@ -245,4 +273,4 @@ def _to_slot(raw) -> Tuple[int, int]:
 
 def _valid_slot(slot: Tuple[int, int], config: TimetableConfig) -> bool:
     day, period = slot
-    return 1 <= day <= config.days_per_week and 1 <= period <= config.periods_per_day
+    return 1 <= day <= config.days_per_week and 1 <= period <= config.periods_on_day(day)

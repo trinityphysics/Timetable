@@ -270,7 +270,7 @@ class Scheduler:
                 s += 10
             if d not in days_used:
                 s += 5
-            if p <= self.config.periods_per_day // 2:
+            if p <= self.config.periods_on_day(d) // 2:
                 s += 1
             return s
 
