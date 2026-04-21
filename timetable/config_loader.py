@@ -3,7 +3,7 @@
 import json
 from typing import Any, Dict, List, Tuple
 
-from .models import Column, Room, Subject, Teacher, TimetableConfig
+from .models import Class, Column, Room, Subject, Teacher, TimetableConfig, YearGroup
 
 
 def load_config(path: str) -> TimetableConfig:
@@ -23,7 +23,13 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
 
     for t in data.get("teachers", []):
         unavailable = [_to_slot(p) for p in t.get("unavailable", [])]
-        config.teachers.append(Teacher(name=t["name"], unavailable=unavailable))
+        config.teachers.append(
+            Teacher(
+                name=t["name"],
+                unavailable=unavailable,
+                non_contact_entitlement=int(t.get("non_contact_entitlement", 0)),
+            )
+        )
 
     for r in data.get("rooms", []):
         config.rooms.append(Room(name=r["name"], capacity=r.get("capacity", 30)))
@@ -38,12 +44,63 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
             Subject(
                 name=s["name"],
                 column=s["column"],
-                teacher=s["teacher"],
+                teacher=s.get("teacher", ""),
                 periods_per_week=int(s.get("periods_per_week", 1)),
                 room=s.get("room"),
                 preferred_periods=preferred,
             )
         )
+
+    # --- New Step 1: Year groups ------------------------------------------------
+    for yg in data.get("year_groups", []):
+        period_map = [
+            (int(e[0]), int(e[1]), str(e[2]))
+            for e in yg.get("period_map", [])
+        ]
+        config.year_groups.append(YearGroup(name=yg["name"], period_map=period_map))
+
+    # --- New Step 3: Classes ----------------------------------------------------
+    for cls in data.get("classes", []):
+        config.classes.append(
+            Class(
+                year_group=cls["year_group"],
+                subject=cls.get("subject", ""),
+                level=cls.get("level", ""),
+                column=cls.get("column", ""),
+                sections=int(cls.get("sections", 1)),
+                pinned_teacher=cls.get("pinned_teacher") or None,
+                periods_per_week=int(cls.get("periods_per_week", 1)),
+                room=cls.get("room"),
+            )
+        )
+
+    # If classes were provided but no explicit subjects, expand classes → subjects
+    if config.classes and not config.subjects:
+        for cls in config.classes:
+            for code in cls.codes():
+                config.subjects.append(
+                    Subject(
+                        name=code,
+                        column=cls.column,
+                        teacher=cls.pinned_teacher or "",
+                        periods_per_week=cls.periods_per_week,
+                        room=cls.room,
+                    )
+                )
+
+    # If year_groups were provided but no explicit columns, auto-derive column names
+    if config.year_groups and not config.columns:
+        seen_cols: set = set()
+        for yg in config.year_groups:
+            for _, _, col_name in yg.period_map:
+                if col_name and col_name not in seen_cols:
+                    seen_cols.add(col_name)
+                    config.columns.append(Column(name=col_name))
+        # Also collect column names from classes
+        for cls in config.classes:
+            if cls.column and cls.column not in seen_cols:
+                seen_cols.add(cls.column)
+                config.columns.append(Column(name=cls.column))
 
     return config
 
@@ -54,6 +111,7 @@ def validate_config(config: TimetableConfig) -> List[str]:
 
     Returns a list of human-readable error strings.
     An empty list means the configuration is valid.
+    Strings beginning with "WARNING" are non-blocking advisories.
     """
     errors: List[str] = []
 
@@ -75,10 +133,16 @@ def validate_config(config: TimetableConfig) -> List[str]:
             errors.append(f"Duplicate subject name: '{s.name}'.")
         seen_names.add(s.name)
 
-        if s.teacher not in teacher_names:
+        if not s.teacher:
+            errors.append(
+                f"WARNING: Subject '{s.name}' has no teacher assigned; "
+                "it will be scheduled without a teacher constraint."
+            )
+        elif s.teacher not in teacher_names:
             errors.append(
                 f"Subject '{s.name}': teacher '{s.teacher}' is not listed in teachers."
             )
+
         if s.column not in column_names:
             errors.append(
                 f"Subject '{s.name}': column '{s.column}' is not listed in columns."
@@ -121,7 +185,8 @@ def validate_config(config: TimetableConfig) -> List[str]:
     # Warn about teachers shared across columns (possible multiple-delivery issue)
     teacher_columns: Dict[str, set] = {}
     for s in config.subjects:
-        teacher_columns.setdefault(s.teacher, set()).add(s.column)
+        if s.teacher:
+            teacher_columns.setdefault(s.teacher, set()).add(s.column)
     for teacher, cols in teacher_columns.items():
         if len(cols) > 1:
             errors.append(
