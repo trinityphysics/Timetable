@@ -37,17 +37,16 @@ def schedule():
     Request body : JSON object matching the TimetableConfig schema.
     Response     : JSON with keys ``sessions``, ``conflicts``, ``timetable``.
     """
-    if not request.is_json:
-        return jsonify({"error": "Request body must be JSON."}), 400
-
     data = request.get_json(silent=True)
     if data is None:
-        return jsonify({"error": "Invalid JSON in request body."}), 400
+        return jsonify({"error": "Request body must be valid JSON with Content-Type: application/json."}), 400
 
     try:
         config = parse_config(data)
-    except Exception as exc:
+    except (KeyError, ValueError, TypeError) as exc:
         return jsonify({"error": f"Failed to parse config: {exc}"}), 422
+    except Exception:
+        return jsonify({"error": "Failed to parse config: unexpected error."}), 422
 
     issues = validate_config(config)
     hard_issues = [i for i in issues if not i.startswith("WARNING")]

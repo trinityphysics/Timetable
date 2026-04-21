@@ -454,7 +454,12 @@ function renderResults(result, cfg) {
     result.conflicts.forEach(c => {
       const li = document.createElement("li");
       li.className = c.severity;
-      const loc = c.day != null ? ` [Day ${c.day}${c.period != null ? ", P" + c.period : ""}]` : "";
+      let loc = "";
+      if (c.day != null) {
+        loc = ` [Day ${c.day}`;
+        if (c.period != null) { loc += `, P${c.period}`; }
+        loc += "]";
+      }
       li.innerHTML = `<span class="pill pill-${c.severity}">${c.severity.toUpperCase()}</span> <strong>${esc(c.category)}</strong>: ${esc(c.description)}${esc(loc)}`;
       cl.appendChild(li);
     });
