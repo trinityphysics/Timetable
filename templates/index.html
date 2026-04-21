@@ -171,7 +171,7 @@
 </head>
 <body>
 <header>
-  <span>&#128197;</span>
+  <span>🗓️</span>
   <h1>Timetable Scheduler</h1>
 </header>
 <main>
@@ -353,7 +353,7 @@ const EXAMPLE = {
 };
 
 // ── Helpers ──
-function esc(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function esc(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");}
 function levelAbbrev(level){const l=(level||"").trim().toLowerCase();if(l==="n5"||l==="national 5")return "N5";if(l==="higher"||l==="h")return "H";if(l==="ah"||l==="advanced higher")return "AH";return(level||"").substring(0,2).toUpperCase()||"XX";}
 function subjectInitial(s){return((s||"").trim()[0]||"X").toUpperCase();}
 function classShortName(cls){return(cls.year_group?cls.year_group+" ":"")+(cls.subject||"?")+(cls.level?" "+levelAbbrev(cls.level):"");}
@@ -649,7 +649,7 @@ function handleDrop(targetDay,targetPeriod){
 // ── Load / Reset ──
 function loadExample(){
   s=JSON.parse(JSON.stringify(EXAMPLE));
-  _nextId=Math.max(...s.classes.map(c=>c.id+1),0);
+  _nextId=Math.max(...s.classes.map(c=>(c.id||0)+1),0);
   document.getElementById("tt-name").value=s.name;
   document.getElementById("tt-days").value=s.days_per_week;
   document.getElementById("tt-periods").value=s.periods_per_day;
