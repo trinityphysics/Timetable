@@ -173,8 +173,37 @@
 <header>
   <span>🗓️</span>
   <h1>Timetable Scheduler</h1>
+  <div id="user-badge" class="hidden" style="margin-left:auto;display:flex;align-items:center;gap:.75rem">
+    <span style="font-size:.85rem;color:#e2e8f0">👤 <span id="user-name-display"></span></span>
+    <button onclick="logoutUser()" style="padding:.3rem .75rem;border:1px solid rgba(255,255,255,.4);border-radius:5px;background:transparent;color:#fff;cursor:pointer;font-size:.78rem;font-weight:600">Log out</button>
+  </div>
 </header>
-<main>
+
+<!-- Login Overlay -->
+<div id="login-overlay" style="position:fixed;inset:0;background:rgba(45,55,72,.88);display:flex;align-items:center;justify-content:center;z-index:1000">
+  <div style="background:#fff;border-radius:12px;padding:2rem 2.5rem;width:100%;max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.4)">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="font-size:2.5rem;margin-bottom:.5rem">🗓️</div>
+      <h2 style="font-size:1.25rem;font-weight:700;color:#2d3748">Timetable Scheduler</h2>
+      <p style="font-size:.82rem;color:#718096;margin-top:.35rem">Sign in to save and access your timetables</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.85rem">
+      <div class="field-group">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" placeholder="Enter your username" style="width:100%;padding:.45rem .6rem" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()" />
+      </div>
+      <div class="field-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" style="width:100%;padding:.45rem .6rem" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginUser()" />
+      </div>
+      <p id="login-error" style="font-size:.8rem;color:#e53e3e;min-height:1.1em;margin:0"></p>
+      <button class="btn-next" style="width:100%;padding:.65rem;font-size:.9rem" onclick="loginUser()">&#128274; Log In</button>
+      <button class="btn-prev" style="width:100%;padding:.6rem;font-size:.88rem" onclick="registerUser()">&#43; Register New Account</button>
+    </div>
+  </div>
+</div>
+
+<main id="main-app" class="hidden">
   <!-- Step indicator -->
   <div class="step-bar">
     <div class="step-item active" id="step-indicator-1" onclick="goToStep(1)">
@@ -324,7 +353,8 @@ const YEAR_GROUP_OPTIONS = ["S1","S2","S3","S4","S5","S6"];
 const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 
 // ── State ──
-let s = { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] };
+function _defaultState() { return { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] }; }
+let s = _defaultState();
 let _nextId = 0;
 let _selectedPoolId = null;
 let _scheduleResult = null;
@@ -332,6 +362,99 @@ let _step5Sessions  = [];
 let _draggingSession = null;
 let currentStep = 1;
 const _h = {};
+
+// ── Auth & Persistence ──
+// Note: credentials are stored in localStorage (browser-local only). localStorage is
+// not encrypted and can be read by any JavaScript on the same origin. This is
+// appropriate for a single-device school tool; it is not a replacement for
+// server-side authentication. Each user's data is isolated by username.
+let _currentUser = null;
+
+async function _hashPassword(password, salt) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(password + salt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function _makeSalt() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function _getUsers() {
+  try { return JSON.parse(localStorage.getItem('tt_users') || '{}'); } catch(e) { return {}; }
+}
+function _saveUsers(users) { localStorage.setItem('tt_users', JSON.stringify(users)); }
+
+function saveState() {
+  if (!_currentUser) return;
+  localStorage.setItem('tt_data_' + _currentUser, JSON.stringify({ s, _nextId }));
+}
+function _loadState() {
+  if (!_currentUser) return false;
+  try {
+    const raw = localStorage.getItem('tt_data_' + _currentUser);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.s) { s = data.s; _nextId = data._nextId || 0; return true; }
+  } catch(e) {}
+  return false;
+}
+function _setLoginError(msg) { document.getElementById('login-error').textContent = msg; }
+
+async function loginUser() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) { _setLoginError('Please enter a username and password.'); return; }
+  const users = _getUsers();
+  const entry = users[username];
+  if (!entry) { _setLoginError('Username not found. Click Register to create an account.'); return; }
+  const hash = await _hashPassword(password, entry.salt);
+  if (entry.hash !== hash) { _setLoginError('Incorrect password.'); return; }
+  _currentUser = username;
+  _showApp();
+}
+async function registerUser() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) { _setLoginError('Please enter a username and password.'); return; }
+  if (username.length < 2) { _setLoginError('Username must be at least 2 characters.'); return; }
+  if (password.length < 8) { _setLoginError('Password must be at least 8 characters.'); return; }
+  const users = _getUsers();
+  if (users[username]) { _setLoginError('Username already taken. Please log in instead.'); return; }
+  const salt = _makeSalt();
+  const hash = await _hashPassword(password, salt);
+  users[username] = { hash, salt };
+  _saveUsers(users);
+  _currentUser = username;
+  _showApp();
+}
+function logoutUser() {
+  saveState();
+  _currentUser = null;
+  _scheduleResult = null;
+  _step5Sessions = [];
+  s = _defaultState();
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('main-app').classList.add('hidden');
+  document.getElementById('user-badge').classList.add('hidden');
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+function _showApp() {
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('main-app').classList.remove('hidden');
+  document.getElementById('user-badge').classList.remove('hidden');
+  document.getElementById('user-name-display').textContent = _currentUser;
+  // Load saved data for returning users; fall back to the example for new accounts.
+  if (!_loadState()) {
+    loadExample();
+  } else {
+    document.getElementById('tt-name').value = s.name;
+    document.getElementById('tt-days').value = s.days_per_week;
+    document.getElementById('tt-periods').value = s.periods_per_day;
+    renderClasses();
+  }
+  goToStep(1);
+}
 
 // ── Example ──
 const EXAMPLE = {
@@ -370,6 +493,7 @@ function onSettingsChange(){s.days_per_week=Math.max(1,parseInt(document.getElem
 
 // ── Step Navigation ──
 function goToStep(n){
+  saveState();
   for(let i=1;i<=5;i++){
     const panel=document.getElementById("step-"+i);
     const ind=document.getElementById("step-indicator-"+i);
@@ -672,9 +796,9 @@ document.getElementById("btn-reset").addEventListener("click",()=>{
   _scheduleResult=null;_step5Sessions=[];
   document.getElementById("assign-output").classList.add("hidden");
   document.getElementById("btn-to-step5").classList.add("hidden");
-  loadExample();goToStep(1);
+  loadExample();saveState();goToStep(1);
 });
-loadExample();goToStep(1);
+window.addEventListener('beforeunload', saveState);
 </script>
 </body>
 </html>
