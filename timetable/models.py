@@ -57,6 +57,10 @@ class Column:
     name: str
     # Slots when this column cannot be scheduled (e.g. assembly, sport)
     unavailable: List[Slot] = field(default_factory=list)
+    # When non-empty, the column MUST be scheduled at exactly these slots
+    # (derived from a YearGroup period_map).  An empty list means the
+    # scheduler is free to choose any available slot.
+    pinned_slots: List[Slot] = field(default_factory=list)
 
 
 @dataclass

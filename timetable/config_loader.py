@@ -132,14 +132,24 @@ def parse_config(data: Dict[str, Any]) -> TimetableConfig:
                 )
 
     # If year_groups were provided but no explicit columns, auto-derive column names
+    # and pin each column to the exact slots specified in the period_map.
     if config.year_groups and not config.columns:
-        seen_cols: set = set()
+        # Collect ordered (slot) lists per column across all year groups
+        col_slots: Dict[str, List[Tuple[int, int]]] = {}
         for yg in config.year_groups:
-            for _, _, col_name in yg.period_map:
-                if col_name and col_name not in seen_cols:
-                    seen_cols.add(col_name)
-                    config.columns.append(Column(name=col_name))
-        # Also collect column names from classes
+            for day, period, col_name in yg.period_map:
+                if col_name:
+                    slot = (day, period)
+                    if col_name not in col_slots:
+                        col_slots[col_name] = []
+                    if slot not in col_slots[col_name]:
+                        col_slots[col_name].append(slot)
+
+        seen_cols: set = set()
+        for col_name, slots in col_slots.items():
+            seen_cols.add(col_name)
+            config.columns.append(Column(name=col_name, pinned_slots=slots))
+        # Also collect column names from classes (no pinned slots — free scheduling)
         for cls in config.classes:
             if cls.column and cls.column not in seen_cols:
                 seen_cols.add(cls.column)

@@ -333,3 +333,109 @@ def test_scheduler_does_not_use_slot_beyond_short_day():
         if a.day == 5:
             assert a.period <= 3, f"Slot (5, {a.period}) beyond day-5 length of 3"
 
+
+# ---------------------------------------------------------------------------
+# Pinned slots (period_map)
+# ---------------------------------------------------------------------------
+
+
+def test_pinned_slots_are_respected():
+    """When a Column has pinned_slots, all assignments must fall in those slots."""
+    from timetable.models import Column
+
+    pinned = [(1, 3), (3, 5)]
+    config = make_config(
+        days=5,
+        periods=6,
+        teachers=[Teacher("T")],
+        rooms=[Room("R")],
+        columns=[Column("A", pinned_slots=pinned)],
+        subjects=[Subject("Math", "A", "T", periods_per_week=2)],
+    )
+    assignments, conflicts = Scheduler(config).schedule()
+
+    hard = [c for c in conflicts if c.severity == "hard"]
+    assert hard == [], f"Unexpected hard conflicts: {hard}"
+    assert len(assignments) == 2
+
+    for a in assignments:
+        assert (a.day, a.period) in pinned, (
+            f"Assignment at ({a.day}, {a.period}) is not in pinned_slots {pinned}"
+        )
+
+
+def test_pinned_slots_create_gaps_in_timetable():
+    """Pinned-slot columns must leave unpinned slots empty (no free scheduling)."""
+    from timetable.models import Column
+
+    pinned = [(2, 4), (4, 2)]
+    config = make_config(
+        days=5,
+        periods=6,
+        teachers=[Teacher("T")],
+        rooms=[Room("R")],
+        columns=[Column("A", pinned_slots=pinned)],
+        subjects=[Subject("Math", "A", "T", periods_per_week=2)],
+    )
+    assignments, _ = Scheduler(config).schedule()
+
+    used_slots = {(a.day, a.period) for a in assignments}
+    # Only the two pinned slots should be used — all others remain empty
+    assert used_slots == set(pinned), (
+        f"Expected only pinned slots {set(pinned)}, got {used_slots}"
+    )
+
+
+def test_year_group_period_map_pins_column_slots():
+    """Config derived from year_group period_map must pin each column's slots."""
+    from timetable.config_loader import parse_config
+
+    data = {
+        "days_per_week": 5,
+        "periods_per_day": 6,
+        "teachers": [{"name": "Ms. A"}, {"name": "Mr. B"}],
+        "rooms": [{"name": "R1"}, {"name": "R2"}],
+        "year_groups": [
+            {
+                "name": "S4",
+                "period_map": [
+                    [1, 2, "E"],
+                    [3, 4, "E"],
+                    [2, 1, "F"],
+                    [4, 3, "F"],
+                ],
+            }
+        ],
+        "classes": [
+            {
+                "year_group": "S4",
+                "subject": "Physics",
+                "level": "Higher",
+                "column": "E",
+                "allowed_teachers": ["Ms. A"],
+            },
+            {
+                "year_group": "S4",
+                "subject": "Chemistry",
+                "level": "Higher",
+                "column": "F",
+                "allowed_teachers": ["Mr. B"],
+            },
+        ],
+    }
+    config = parse_config(data)
+    assignments, conflicts = Scheduler(config).schedule()
+
+    hard = [c for c in conflicts if c.severity == "hard"]
+    assert hard == [], f"Unexpected hard conflicts: {hard}"
+
+    col_e_slots = {(a.day, a.period) for a in assignments if a.column == "E"}
+    col_f_slots = {(a.day, a.period) for a in assignments if a.column == "F"}
+
+    assert col_e_slots == {(1, 2), (3, 4)}, (
+        f"Column E must be at pinned slots {{(1,2),(3,4)}}, got {col_e_slots}"
+    )
+    assert col_f_slots == {(2, 1), (4, 3)}, (
+        f"Column F must be at pinned slots {{(2,1),(4,3)}}, got {col_f_slots}"
+    )
+
