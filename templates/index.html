@@ -956,9 +956,12 @@ function buildScheduleConfig(){
   s.classes.forEach(cls=>{
     const placed=s.placements.filter(p=>p.class_id===cls.id);
     if(placed.length===0)return;
-    const colName=cls.column||"A";
+    // Use a unique column key per class so the scheduler treats each class
+    // independently.  The A–H letter is purely a display label and must not
+    // cause classes to be grouped together (which would merge their pinned slots).
+    const uniqueColKey="col_"+cls.id;
     const pinnedSlots=placed.map(p=>[p.day,p.period]);
-    columns.push({name:colName,pinned_slots:pinnedSlots,unavailable:[]});
+    columns.push({name:uniqueColKey,pinned_slots:pinnedSlots,unavailable:[]});
     const sectionCount=parseInt(cls.sections)||1;
     const teachers=cls.section_teachers||[];
     let assigned;
@@ -966,7 +969,7 @@ function buildScheduleConfig(){
     else if(teachers.length===sectionCount)assigned=teachers.map(t=>t||"");
     else assigned=Array(sectionCount).fill("");
     for(let j=0;j<sectionCount;j++){
-      subjects.push({name:getClassCode(cls,j+1),column:colName,teacher:assigned[j]||"",periods_per_week:placed.length,room:cls.room||null});
+      subjects.push({name:getClassCode(cls,j+1),column:uniqueColKey,teacher:assigned[j]||"",periods_per_week:placed.length,room:cls.room||null});
     }
   });
   return {
@@ -1000,11 +1003,33 @@ function renderAssignResult(result){
     '<div class="stat-box"><div class="label">Hard conflicts</div><div class="value" style="color:'+(hard?"#e53e3e":"#38a169")+'">'+hard+"</div></div>"+
     '<div class="stat-box"><div class="label">Soft warnings</div><div class="value" style="color:'+(soft?"#d69e2e":"#38a169")+'">'+soft+"</div></div>";
   const conflictSlots=buildConflictSlotSet(result.conflicts);
-  renderResultGridInto("assign-grid",result.sessions,result.timetable,conflictSlots,false);
+  const sessionColourMap=buildSessionColourMap(result.conflicts,result.sessions);
+  renderResultGridInto("assign-grid",result.sessions,result.timetable,conflictSlots,false,sessionColourMap);
   renderConflictListInto("assign-conflicts",result.conflicts);
 }
 function buildConflictSlotSet(conflicts){const set=new Set();conflicts.forEach(c=>{if(c.day!=null&&c.period!=null)set.add(c.day+","+c.period);});return set;}
-function renderResultGridInto(containerId,sessions,timetable,conflictSlots,draggable){
+
+// Palette for conflict groups — each distinct conflict gets its own colour so
+// both (or all) sessions involved share the same highlight.
+const _CONFLICT_COLOURS=['#fed7d7','#fefcbf','#bee3f8','#c6f6d5','#e9d8fd','#fbd38d','#b2f5ea','#fed7e2','#c3dafe','#feebc8'];
+
+function buildSessionColourMap(conflicts,sessions){
+  // Map "subject|day|period" → highlight colour.
+  // Each conflict that references a specific slot gets a unique colour;
+  // all sessions involved in that conflict share the same colour.
+  const map={};
+  let colIdx=0;
+  conflicts.forEach(c=>{
+    if(c.day==null||c.period==null)return;
+    const colour=_CONFLICT_COLOURS[colIdx++%_CONFLICT_COLOURS.length];
+    const subjectSet=(c.subjects&&c.subjects.length>0)?new Set(c.subjects):null;
+    sessions.filter(s=>s.day===c.day&&s.period===c.period&&(!subjectSet||subjectSet.has(s.subject))).forEach(s=>{
+      map[s.subject+'|'+s.day+'|'+s.period]=colour;
+    });
+  });
+  return map;
+}
+function renderResultGridInto(containerId,sessions,timetable,conflictSlots,draggable,sessionColourMap){
   const days=timetable.days_per_week,periods=timetable.periods_per_day;
   const wrapper=document.getElementById(containerId);wrapper.innerHTML="";
   const bySlot={};sessions.forEach(sess=>{const k=sess.day+","+sess.period;(bySlot[k]=bySlot[k]||[]).push(sess);});
@@ -1026,7 +1051,10 @@ function renderResultGridInto(containerId,sessions,timetable,conflictSlots,dragg
       }
       (bySlot[key]||[]).forEach(sess=>{
         const badge=document.createElement("div");
-        badge.className="session-badge"+(conflictSlots.has(key)?" conflict-badge":"")+(draggable?" draggable":"");
+        const sessKey=sess.subject+'|'+sess.day+'|'+sess.period;
+        const conflictColour=sessionColourMap&&sessionColourMap[sessKey];
+        badge.className="session-badge"+(draggable?" draggable":"");
+        if(conflictColour){badge.style.background=conflictColour;badge.style.borderColor='#e53e3e';badge.style.borderWidth='2px';}
         badge.innerHTML='<span class="sb-subject" title="'+esc(sess.subject)+'">'+esc(sess.subject)+"</span>"+'<span class="sb-teacher">'+esc(sess.teacher||"\u2014")+"</span>";
         if(draggable){
           badge.draggable=true;
@@ -1056,7 +1084,8 @@ function renderResolutionGrid(){
   const timetable=_scheduleResult.timetable;
   const conflicts=computeClientConflicts(_step5Sessions);
   const conflictSlots=buildConflictSlotSet(conflicts);
-  renderResultGridInto("resolve-grid",_step5Sessions,timetable,conflictSlots,true);
+  const sessionColourMap=buildSessionColourMap(conflicts,_step5Sessions);
+  renderResultGridInto("resolve-grid",_step5Sessions,timetable,conflictSlots,true,sessionColourMap);
   renderConflictListInto("resolve-conflicts",conflicts);
   const statusEl=document.getElementById("resolve-status");
   const hard=conflicts.filter(c=>c.severity==="hard").length;

@@ -257,18 +257,6 @@ def validate_config(config: TimetableConfig) -> List[str]:
                     f"Column '{c.name}': unavailable slot {slot} is out of range."
                 )
 
-    # Warn about teachers shared across columns (possible multiple-delivery issue)
-    teacher_columns: Dict[str, set] = {}
-    for s in config.subjects:
-        if s.teacher:
-            teacher_columns.setdefault(s.teacher, set()).add(s.column)
-    for teacher, cols in teacher_columns.items():
-        if len(cols) > 1:
-            errors.append(
-                f"WARNING: Teacher '{teacher}' appears in multiple columns "
-                f"({', '.join(sorted(cols))}). This may cause scheduling conflicts."
-            )
-
     return errors
 
 

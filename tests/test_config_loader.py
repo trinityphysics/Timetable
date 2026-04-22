@@ -127,7 +127,10 @@ def test_validate_config_out_of_range_slot():
     assert any("out of range" in e.lower() for e in errors)
 
 
-def test_validate_config_multi_column_teacher_warning():
+def test_validate_config_multi_column_teacher_no_warning():
+    """Teachers appearing in multiple columns no longer generate a warning.
+    Each class uses a unique internal column ID, so a teacher teaching several
+    classes will always span multiple columns — the warning was removed."""
     data = _minimal_data()
     data["columns"].append({"name": "Col 2"})
     data["subjects"].append(
@@ -140,7 +143,7 @@ def test_validate_config_multi_column_teacher_warning():
     )
     config = parse_config(data)
     errors = validate_config(config)
-    assert any("multiple columns" in e for e in errors)
+    assert not any("multiple columns" in e for e in errors)
 
 
 # ---------------------------------------------------------------------------
