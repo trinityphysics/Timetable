@@ -167,6 +167,66 @@
       .step-divider { width: 0.4rem; }
       .placement-layout { grid-template-columns: 1fr; }
     }
+    /* Landing page */
+    .landing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.5rem; margin:2rem 0; }
+    .mode-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.12); padding:2rem 1.5rem; text-align:center; cursor:pointer; border:2px solid transparent; transition:all .2s; }
+    .mode-card:hover { border-color:#3182ce; transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.15); }
+    .mode-card .mc-icon { font-size:3rem; margin-bottom:.75rem; }
+    .mode-card h3 { font-size:1.15rem; font-weight:700; color:#2d3748; margin-bottom:.4rem; }
+    .mode-card p { font-size:.82rem; color:#718096; line-height:1.5; }
+    .mode-submenu { display:flex; gap:1rem; justify-content:center; margin-top:1rem; }
+    /* Saved timetables modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:2000; }
+    .modal-box { background:#fff; border-radius:12px; padding:1.75rem; width:100%; max-width:580px; max-height:80vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,.35); }
+    .modal-box h2 { font-size:1.1rem; font-weight:700; color:#2d3748; margin-bottom:1rem; }
+    .saved-row { display:flex; align-items:center; gap:.75rem; padding:.55rem .75rem; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:.4rem; background:#f7fafc; }
+    .saved-row-info { flex:1; min-width:0; }
+    .saved-row-name { font-size:.85rem; font-weight:700; color:#2d3748; }
+    .saved-row-meta { font-size:.72rem; color:#718096; margin-top:.1rem; }
+    .btn-sm { padding:.3rem .75rem; border:none; border-radius:5px; font-size:.78rem; font-weight:600; cursor:pointer; }
+    .btn-sm-blue { background:#ebf8ff; color:#2b6cb0; border:1px solid #bee3f8; }
+    .btn-sm-blue:hover { background:#bee3f8; }
+    .btn-sm-red  { background:#fff5f5; color:#c53030; border:1px solid #fed7d7; }
+    .btn-sm-red:hover  { background:#fed7d7; }
+    .btn-sm-green { background:#f0fff4; color:#276749; border:1px solid #c6f6d5; }
+    .btn-sm-green:hover { background:#c6f6d5; }
+    .conflict-badge-count { display:inline-flex; align-items:center; justify-content:center; background:#e53e3e; color:#fff; border-radius:9999px; font-size:.75rem; font-weight:700; min-width:22px; height:22px; padding:0 .35rem; margin-left:.4rem; }
+    .conflict-badge-ok { background:#38a169; }
+    /* BGE / Rooms teacher-row grid */
+    .tr-table { border-collapse:collapse; width:100%; font-size:.78rem; }
+    .tr-table th { background:#2d3748; color:#fff; padding:.35rem .5rem; text-align:center; font-size:.72rem; white-space:nowrap; }
+    .tr-table td { border:1px solid #e2e8f0; padding:.25rem; min-width:72px; min-height:38px; vertical-align:top; }
+    .tr-table .row-label { background:#edf2f7; font-weight:700; font-size:.72rem; text-align:center; white-space:nowrap; padding:.25rem .4rem; }
+    .bge-cell { min-height:34px; border-radius:3px; position:relative; }
+    .bge-cell.blocked { background:#e2e8f0; }
+    .bge-cell.conflict { background:#fff5f5; border:2px solid #fc8181; }
+    .bge-chip { display:inline-block; background:#ebf8ff; border:1px solid #bee3f8; border-radius:4px; padding:.1rem .3rem; font-size:.68rem; font-weight:700; color:#2b6cb0; margin:.05rem; cursor:default; }
+    .bge-chip.draggable { cursor:grab; }
+    .bge-chip.dragging { opacity:.4; }
+    .palette-area { background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:.75rem; margin-top:1rem; }
+    .palette-area h3 { font-size:.75rem; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.5rem; }
+    .palette-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+    .palette-chip { background:#fff; border:2px solid #3182ce; border-radius:6px; padding:.3rem .65rem; font-size:.8rem; font-weight:700; color:#2b6cb0; cursor:grab; user-select:none; }
+    .palette-chip:hover { background:#ebf8ff; }
+    .palette-chip.used { border-color:#38a169; color:#276749; background:#f0fff4; }
+    .teacher-colour-0  { background:#ebf8ff; } .teacher-colour-1  { background:#f0fff4; }
+    .teacher-colour-2  { background:#fffff0; } .teacher-colour-3  { background:#fff5f5; }
+    .teacher-colour-4  { background:#faf5ff; } .teacher-colour-5  { background:#fffaf0; }
+    .teacher-colour-6  { background:#e6fffa; } .teacher-colour-7  { background:#fff0f3; }
+    .teacher-colour-8  { background:#f0f4ff; } .teacher-colour-9  { background:#f5fff0; }
+    /* Rooms */
+    .room-cell-locked { background:#edf2f7; font-size:.72rem; color:#4a5568; }
+    .room-conflict { background:#fff5f5; border:2px solid #fc8181; }
+    /* Step bars for BGE / Rooms */
+    .step-bar-bge, .step-bar-rooms { display:flex; align-items:center; background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.1); padding:1rem 1.5rem; flex-wrap:wrap; gap:.25rem; }
+    /* Print */
+    @media print {
+      header, .step-bar, .step-bar-bge, .step-bar-rooms, #landing-page, .step-nav, .palette-area, #login-overlay, .modal-overlay, .no-print { display:none !important; }
+      body { background:#fff; }
+      .card { box-shadow:none; border:none; }
+      .print-only { display:block !important; }
+    }
+    .print-only { display:none; }
   </style>
 </head>
 <body>
@@ -175,6 +235,7 @@
   <h1>Timetable Scheduler</h1>
   <div id="user-badge" class="hidden" style="margin-left:auto;display:flex;align-items:center;gap:.75rem">
     <span style="font-size:.85rem;color:#e2e8f0">👤 <span id="user-name-display"></span></span>
+    <button id="btn-saved-tt" onclick="openSavedTimetables()" style="padding:.3rem .75rem;border:1px solid rgba(255,255,255,.4);border-radius:5px;background:transparent;color:#fff;cursor:pointer;font-size:.78rem;font-weight:600">💾 Saved</button>
     <button onclick="logoutUser()" style="padding:.3rem .75rem;border:1px solid rgba(255,255,255,.4);border-radius:5px;background:transparent;color:#fff;cursor:pointer;font-size:.78rem;font-weight:600">Log out</button>
   </div>
 </header>
@@ -204,6 +265,37 @@
 </div>
 
 <main id="main-app" class="hidden">
+  <!-- Landing Page -->
+  <div id="landing-page">
+    <div class="card" style="text-align:center;padding:2rem">
+      <h2 style="font-size:1.4rem;margin-bottom:.5rem">Welcome, <span id="landing-username"></span></h2>
+      <p class="step-desc" style="margin-bottom:0">Choose a mode to get started.</p>
+    </div>
+    <div class="landing-grid">
+      <div class="mode-card" onclick="showMode('senior')">
+        <div class="mc-icon">🎓</div>
+        <h3>Senior Phase</h3>
+        <p>Schedule S4–S6 classes across teachers and columns.</p>
+      </div>
+      <div class="mode-card" onclick="showBGEMenu()">
+        <div class="mc-icon">📚</div>
+        <h3>BGE</h3>
+        <p>Schedule BGE classes using Senior Phase as a blocking layer.</p>
+        <div class="mode-submenu hidden" id="bge-submenu">
+          <button class="btn-next" onclick="event.stopPropagation();showMode('bge-manual')">Manual</button>
+          <button class="btn-action" onclick="event.stopPropagation();showMode('bge-auto')">Automatic</button>
+        </div>
+      </div>
+      <div class="mode-card" onclick="showMode('rooms')">
+        <div class="mc-icon">🏫</div>
+        <h3>Rooms</h3>
+        <p>Assign rooms to completed BGE timetable entries.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Senior Phase Flow -->
+  <div id="senior-flow" class="hidden">
   <!-- Step indicator -->
   <div class="step-bar">
     <div class="step-item active" id="step-indicator-1" onclick="goToStep(1)">
@@ -342,13 +434,199 @@
     <div id="resolve-conflicts"></div>
     <div class="step-nav">
       <button class="btn-prev" onclick="goToStep(4)">&#9668; Back to Auto-Assign</button>
+      <div style="display:flex;gap:.5rem;margin-left:auto">
+        <button class="btn-action" onclick="openSaveTimetableDialog('senior')">💾 Save Timetable</button>
+        <button class="btn-reset no-print" onclick="window.print()">🖨️ Print / Download</button>
+      </div>
     </div>
   </div>
+  </div><!-- /senior-flow -->
+
+<!-- ═══ BGE Flow ═══ -->
+<div id="bge-flow" class="hidden">
+  <!-- BGE Step bar -->
+  <div class="step-bar-bge" id="bge-step-bar">
+    <div class="step-item active" id="bge-ind-1" onclick="gotoBGEStep(1)"><div class="step-num" id="bge-sn-1">1</div><div class="step-label">Teachers</div></div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="bge-ind-2" onclick="gotoBGEStep(2)"><div class="step-num" id="bge-sn-2">2</div><div class="step-label">Block Slots</div></div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="bge-ind-3" onclick="gotoBGEStep(3)"><div class="step-num" id="bge-sn-3">3</div><div class="step-label">New Classes</div></div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="bge-ind-4" onclick="gotoBGEStep(4)"><div class="step-num" id="bge-sn-4">4</div><div class="step-label">Schedule</div></div>
+  </div>
+
+  <!-- BGE Step 1: Teachers -->
+  <div class="card" id="bge-step-1">
+    <h2>BGE Step 1 — Teachers &amp; Pre-existing Commitments</h2>
+    <p class="step-desc">Enter teachers. For each teacher, optionally record existing Senior Phase commitments (day, period, class name) — these will be blocked in Step 2.</p>
+    <div style="margin-bottom:.75rem">
+      <button class="btn-sm btn-sm-blue" onclick="bgeImportSeniorPhase()">📥 Import from Saved Senior Phase</button>
+    </div>
+    <div class="form-section">
+      <h3>Teachers</h3>
+      <div id="bge-teachers-container"></div>
+      <button class="btn-add-item" onclick="bgeAddTeacher()">+ Add Teacher</button>
+    </div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="showMode('landing')">← Back to Menu</button>
+      <button class="btn-next" onclick="gotoBGEStep(2)" style="margin-left:auto">Next: Block Slots ▶</button>
+    </div>
+  </div>
+
+  <!-- BGE Step 2: Block slots -->
+  <div class="card hidden" id="bge-step-2">
+    <h2>BGE Step 2 — Block Existing Slots</h2>
+    <p class="step-desc">Grey cells are pre-blocked from Senior Phase commitments. Click a cell to toggle additional blocks.</p>
+    <div style="margin-bottom:.5rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+      <div class="field-group"><label>Days/Wk</label><input type="number" id="bge-days" value="5" min="1" max="7" style="width:62px" onchange="bgeRenderBlockGrid()"/></div>
+      <div class="field-group"><label>Periods/Day</label><input type="number" id="bge-periods" value="6" min="1" max="20" style="width:62px" onchange="bgeRenderBlockGrid()"/></div>
+    </div>
+    <div class="timetable-wrapper" id="bge-block-grid"></div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="gotoBGEStep(1)">← Back</button>
+      <button class="btn-next" onclick="gotoBGEStep(3)" style="margin-left:auto">Next: New Classes ▶</button>
+    </div>
+  </div>
+
+  <!-- BGE Step 3: New classes -->
+  <div class="card hidden" id="bge-step-3">
+    <h2>BGE Step 3 — New Classes to Schedule</h2>
+    <p class="step-desc">Add the BGE classes you want to schedule. Each class needs a name and the number of periods per week.</p>
+    <div id="bge-classes-container"></div>
+    <button class="btn-add-item" onclick="bgeAddClass()">+ Add Class</button>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="gotoBGEStep(2)">← Back</button>
+      <button class="btn-next" onclick="gotoBGEStep(4)" id="bge-to-step4" style="margin-left:auto">Next: Schedule ▶</button>
+    </div>
+  </div>
+
+  <!-- BGE Step 4: Schedule (manual or auto rendered by JS) -->
+  <div class="card hidden" id="bge-step-4">
+    <div id="bge-step4-manual">
+      <h2>BGE Step 4 — Manual Scheduling</h2>
+      <p class="step-desc">Drag a class chip from the palette onto a teacher row / period cell. Conflicts are highlighted in red.</p>
+      <div class="timetable-wrapper" id="bge-manual-grid"></div>
+      <div class="palette-area no-print">
+        <h3>Classes to Place</h3>
+        <div class="palette-chips" id="bge-palette"></div>
+      </div>
+      <div id="bge-manual-conflicts" style="margin-top:.5rem"></div>
+    </div>
+    <div id="bge-step4-auto" class="hidden">
+      <h2>BGE Step 4 — Auto-Assign</h2>
+      <p class="step-desc">Click <strong>Run Auto-Assign</strong> to automatically schedule classes respecting blocks and teacher capacity.</p>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+        <button class="btn-action" id="bge-auto-btn" onclick="bgeRunAutoAssign()">⚡ Run Auto-Assign</button>
+        <span class="status-msg" id="bge-auto-status"></span>
+      </div>
+      <div class="timetable-wrapper" id="bge-auto-grid"></div>
+    </div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="gotoBGEStep(3)">← Back</button>
+      <div style="display:flex;gap:.5rem;margin-left:auto">
+        <button class="btn-action" onclick="openSaveTimetableDialog('bge')">💾 Save Timetable</button>
+        <button class="btn-reset no-print" onclick="bgePrint()">🖨️ Print / Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Rooms Flow ═══ -->
+<div id="rooms-flow" class="hidden">
+  <div class="step-bar-rooms" id="rooms-step-bar">
+    <div class="step-item active" id="rm-ind-1" onclick="gotoRoomsStep(1)"><div class="step-num" id="rm-sn-1">1</div><div class="step-label">Import BGE</div></div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="rm-ind-2" onclick="gotoRoomsStep(2)"><div class="step-num" id="rm-sn-2">2</div><div class="step-label">Home Rooms &amp; Rules</div></div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="rm-ind-3" onclick="gotoRoomsStep(3)"><div class="step-num" id="rm-sn-3">3</div><div class="step-label">Room Grid</div></div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="rm-ind-4" onclick="gotoRoomsStep(4)"><div class="step-num" id="rm-sn-4">4</div><div class="step-label">Final Output</div></div>
+  </div>
+
+  <!-- Rooms Step 1 -->
+  <div class="card" id="rooms-step-1">
+    <h2>Rooms Step 1 — Import BGE Timetable</h2>
+    <p class="step-desc">Load a saved BGE timetable to use as the base, or start fresh.</p>
+    <button class="btn-sm btn-sm-blue" onclick="openSavedTimetables('bge')">📥 Load Saved BGE Timetable</button>
+    <div id="rooms-bge-preview" style="margin-top:1rem"></div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="showMode('landing')">← Back to Menu</button>
+      <button class="btn-next" onclick="gotoRoomsStep(2)" style="margin-left:auto">Next: Home Rooms ▶</button>
+    </div>
+  </div>
+
+  <!-- Rooms Step 2 -->
+  <div class="card hidden" id="rooms-step-2">
+    <h2>Rooms Step 2 — Teacher Home Rooms &amp; Rules</h2>
+    <p class="step-desc">Assign each teacher a home room and add any class-specific room rules.</p>
+    <div id="rooms-teacher-rooms"></div>
+    <div class="form-section" style="margin-top:1rem">
+      <h3>Class Room Rules</h3>
+      <div id="rooms-rules-container"></div>
+      <button class="btn-add-item" onclick="roomsAddRule()">+ Add Rule</button>
+    </div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="gotoRoomsStep(1)">← Back</button>
+      <button class="btn-next" onclick="roomsBuildGrid();gotoRoomsStep(3)" style="margin-left:auto">Next: Room Grid ▶</button>
+    </div>
+  </div>
+
+  <!-- Rooms Step 3 -->
+  <div class="card hidden" id="rooms-step-3">
+    <h2>Rooms Step 3 — Room Distribution Grid</h2>
+    <p class="step-desc">Locked cells (🔒) are fixed by rules. Other cells show the teacher's home room and can be edited.</p>
+    <div class="timetable-wrapper" id="rooms-grid"></div>
+    <div id="rooms-conflicts" style="margin-top:.5rem"></div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="gotoRoomsStep(2)">← Back</button>
+      <button class="btn-next" onclick="gotoRoomsStep(4)" style="margin-left:auto">Next: Final Output ▶</button>
+    </div>
+  </div>
+
+  <!-- Rooms Step 4 -->
+  <div class="card hidden" id="rooms-step-4">
+    <h2>Rooms Step 4 — Final Output</h2>
+    <p class="step-desc">Review the complete timetable with teacher, class, room, and period. Print or save.</p>
+    <div class="timetable-wrapper" id="rooms-final-grid"></div>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="gotoRoomsStep(3)">← Back</button>
+      <div style="display:flex;gap:.5rem;margin-left:auto">
+        <button class="btn-action" onclick="openSaveTimetableDialog('rooms')">💾 Save</button>
+        <button class="btn-reset no-print" onclick="window.print()">🖨️ Print</button>
+      </div>
+    </div>
+  </div>
+</div>
 </main>
+
+<div id="saved-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h2>💾 Saved Timetables</h2>
+      <button class="btn-sm btn-sm-red" onclick="document.getElementById('saved-modal').classList.add('hidden')">✕ Close</button>
+    </div>
+    <div id="saved-list"></div>
+    <p id="saved-empty" style="font-size:.85rem;color:#a0aec0;text-align:center;padding:1.5rem 0">No saved timetables yet.</p>
+  </div>
+</div>
+
+<div id="save-dialog" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:380px">
+    <h2>Save Timetable</h2>
+    <div class="field-group" style="margin:.75rem 0">
+      <label>Name</label>
+      <input type="text" id="save-tt-name" placeholder="e.g. Senior Phase 2026" style="width:100%;padding:.4rem .6rem" />
+    </div>
+    <div style="display:flex;gap:.5rem;margin-top:.75rem">
+      <button class="btn-action" onclick="confirmSaveTimetable()" style="flex:1">Save</button>
+      <button class="btn-prev" onclick="document.getElementById('save-dialog').classList.add('hidden')" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const SUBJECT_OPTIONS = ["Physics","Electronics"];
+const SUBJECT_OPTIONS = ["Physics","Electronics","Chemistry","Biology","Lab Skills","Beekeeping"];
 const YEAR_GROUP_OPTIONS = ["S1","S2","S3","S4","S5","S6"];
 const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 const COLUMN_OPTIONS = ["A","B","C","D","E","F","G","H"];
@@ -363,6 +641,22 @@ let _step5Sessions  = [];
 let _draggingSession = null;
 let currentStep = 1;
 const _h = {};
+
+// ── Mode & BGE & Rooms state ──
+let _currentMode = 'landing';
+// BGE state
+let _bgeTeachers = [];
+let _bgeBlocked  = {};
+let _bgeDays = 5; let _bgePeriods = 6;
+let _bgeClasses  = [];
+let _bgeGrid     = {};
+let _bgeDragging = null;
+let _bgeNextId   = 0;
+// Rooms state
+let _roomsBGE    = null;
+let _roomsHomeRooms = {};
+let _roomsRules  = [];
+let _roomsGrid   = {};
 
 // ── Auth & Persistence ──
 // Note: credentials are stored in localStorage (browser-local only). localStorage is
@@ -433,6 +727,7 @@ function logoutUser() {
   _scheduleResult = null;
   _step5Sessions = [];
   s = _defaultState();
+  _currentMode = 'landing';
   document.getElementById('login-overlay').classList.remove('hidden');
   document.getElementById('main-app').classList.add('hidden');
   document.getElementById('user-badge').classList.add('hidden');
@@ -454,7 +749,8 @@ function _showApp() {
     document.getElementById('tt-periods').value = s.periods_per_day;
     renderTeachers();
   }
-  goToStep(1);
+  document.getElementById('landing-username').textContent = _currentUser;
+  showMode('landing');
 }
 
 // ── Example ──
@@ -805,6 +1101,500 @@ document.getElementById("btn-reset").addEventListener("click",()=>{
   loadExample();saveState();goToStep(1);
 });
 window.addEventListener('beforeunload', saveState);
+
+// ── Mode Router ──
+function showMode(mode) {
+  _currentMode = mode;
+  const ids = ['landing-page','senior-flow','bge-flow','rooms-flow'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); });
+  if (mode === 'landing') {
+    document.getElementById('landing-page').classList.remove('hidden');
+  } else if (mode === 'senior') {
+    document.getElementById('senior-flow').classList.remove('hidden');
+    goToStep(1);
+  } else if (mode === 'bge-manual' || mode === 'bge-auto') {
+    document.getElementById('bge-flow').classList.remove('hidden');
+    document.getElementById('bge-step4-manual').classList.toggle('hidden', mode !== 'bge-manual');
+    document.getElementById('bge-step4-auto').classList.toggle('hidden', mode === 'bge-manual');
+    gotoBGEStep(1);
+  } else if (mode === 'rooms') {
+    document.getElementById('rooms-flow').classList.remove('hidden');
+    gotoRoomsStep(1);
+  }
+}
+function showBGEMenu() {
+  document.getElementById('bge-submenu').classList.toggle('hidden');
+}
+
+// ── Saved Timetables ──
+function _getSavedTimetables() {
+  if(!_currentUser) return [];
+  try { return JSON.parse(localStorage.getItem('tt_saved_'+_currentUser)||'[]'); } catch(e){return [];}
+}
+function _setSavedTimetables(arr) {
+  if(!_currentUser) return;
+  localStorage.setItem('tt_saved_'+_currentUser, JSON.stringify(arr));
+}
+function openSavedTimetables(filterMode) {
+  const modal = document.getElementById('saved-modal');
+  const list  = document.getElementById('saved-list');
+  const empty = document.getElementById('saved-empty');
+  const saves = _getSavedTimetables().filter(sv => !filterMode || sv.mode === filterMode);
+  list.innerHTML = '';
+  if(saves.length === 0) { empty.classList.remove('hidden'); }
+  else {
+    empty.classList.add('hidden');
+    saves.forEach((sv, i) => {
+      const row = document.createElement('div');
+      row.className = 'saved-row';
+      const d = new Date(sv.savedAt);
+      const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      row.innerHTML = '<div class="saved-row-info"><div class="saved-row-name">'+esc(sv.name)+'</div><div class="saved-row-meta">'+esc(sv.mode)+' &bull; '+esc(dateStr)+'</div></div>'+
+        '<button class="btn-sm btn-sm-blue" onclick="loadSavedTimetable('+i+',\''+esc(filterMode||'')+'\')">Load</button>'+
+        '<button class="btn-sm btn-sm-red" onclick="deleteSavedTimetable('+i+');openSavedTimetables(\''+esc(filterMode||'')+'\')">Delete</button>';
+      list.appendChild(row);
+    });
+  }
+  modal.classList.remove('hidden');
+}
+function saveTimetable(name, mode, data) {
+  const saves = _getSavedTimetables();
+  saves.unshift({ name, mode, savedAt: new Date().toISOString(), data });
+  _setSavedTimetables(saves);
+}
+function loadSavedTimetable(idx, filterMode) {
+  const allSaves = _getSavedTimetables();
+  const filtered = allSaves.filter(sv => !filterMode || sv.mode === filterMode);
+  const sv = filtered[idx];
+  if(!sv) return;
+  document.getElementById('saved-modal').classList.add('hidden');
+  if(sv.mode === 'senior') {
+    if(sv.data.s) {
+      s = sv.data.s; _nextId = sv.data._nextId||0;
+      document.getElementById('tt-name').value = s.name;
+      document.getElementById('tt-days').value  = s.days_per_week;
+      document.getElementById('tt-periods').value = s.periods_per_day;
+    }
+    if(sv.data.sessions) { _scheduleResult = sv.data.result; _step5Sessions = sv.data.sessions; }
+    showMode('senior');
+  } else if(sv.mode === 'bge') {
+    if(_currentMode === 'rooms' || filterMode === 'bge') {
+      _roomsBGE = sv.data;
+      renderRoomsBGEPreview();
+    } else {
+      _bgeTeachers = sv.data.teachers || [];
+      _bgeBlocked  = sv.data.blocked  || {};
+      _bgeClasses  = sv.data.classes  || [];
+      _bgeGrid     = sv.data.grid     || {};
+    }
+  } else if(sv.mode === 'rooms') {
+    _roomsHomeRooms = sv.data.homeRooms||{};
+    _roomsRules     = sv.data.rules||[];
+    _roomsGrid      = sv.data.grid||{};
+    showMode('rooms');
+  }
+}
+function deleteSavedTimetable(idx) {
+  const saves = _getSavedTimetables();
+  saves.splice(idx,1);
+  _setSavedTimetables(saves);
+}
+let _pendingSaveMode = null;
+function openSaveTimetableDialog(mode) {
+  _pendingSaveMode = mode;
+  document.getElementById('save-tt-name').value = '';
+  document.getElementById('save-dialog').classList.remove('hidden');
+}
+function confirmSaveTimetable() {
+  const name = document.getElementById('save-tt-name').value.trim();
+  if(!name) { alert('Please enter a name.'); return; }
+  let data = {};
+  if(_pendingSaveMode === 'senior') {
+    data = { s: JSON.parse(JSON.stringify(s)), _nextId, result: _scheduleResult, sessions: _step5Sessions.map(x=>Object.assign({},x)) };
+  } else if(_pendingSaveMode === 'bge') {
+    data = { teachers: _bgeTeachers, blocked: _bgeBlocked, classes: _bgeClasses, grid: _bgeGrid };
+  } else if(_pendingSaveMode === 'rooms') {
+    data = { homeRooms: _roomsHomeRooms, rules: _roomsRules, grid: _roomsGrid, bge: _roomsBGE };
+  }
+  saveTimetable(name, _pendingSaveMode, data);
+  document.getElementById('save-dialog').classList.add('hidden');
+  alert('Timetable saved!');
+}
+
+// ── BGE Navigation ──
+function gotoBGEStep(n) {
+  for(let i=1;i<=4;i++){
+    const panel=document.getElementById('bge-step-'+i);
+    const ind=document.getElementById('bge-ind-'+i);
+    if(!ind) continue;
+    if(i===n){if(panel)panel.classList.remove('hidden');ind.classList.add('active');ind.classList.remove('done');}
+    else{if(panel)panel.classList.add('hidden');ind.classList.remove('active');if(i<n)ind.classList.add('done');else ind.classList.remove('done');}
+  }
+  if(n===1) bgeRenderTeachers();
+  if(n===2) bgeRenderBlockGrid();
+  if(n===3) bgeRenderClasses();
+  if(n===4) bgeRenderScheduleStep();
+}
+
+// ── BGE Step 1: Teachers ──
+function bgeAddTeacher() {
+  _bgeTeachers.push({name:'',non_contact:0,unavailable:[],existing:[]});
+  bgeRenderTeachers();
+}
+function bgeRenderTeachers() {
+  const c = document.getElementById('bge-teachers-container'); c.innerHTML='';
+  _bgeTeachers.forEach((t,i)=>{
+    const div=document.createElement('div'); div.className='item-row';
+    let exHtml='<div style="margin-top:.35rem"><label style="font-size:.68rem;color:#718096;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Existing Commitments (day, period, class)</label><div id="bge-ex-'+i+'" style="margin-top:.2rem">';
+    (t.existing||[]).forEach((ex,j)=>{exHtml+='<span class="chip">D'+ex.day+' P'+ex.period+' '+esc(ex.class_name)+'<button class="chip-btn" onclick="_bgeTeachers['+i+'].existing.splice('+j+',1);bgeRenderTeachers()">×</button></span>';});
+    exHtml+='<span class="slot-add-row">D<input type="number" min="1" id="bge-exd-'+i+'" style="width:40px;padding:.2rem .3rem;border:1px solid #cbd5e0;border-radius:4px;font-size:.75rem">P<input type="number" min="1" id="bge-exp-'+i+'" style="width:40px;padding:.2rem .3rem;border:1px solid #cbd5e0;border-radius:4px;font-size:.75rem">Class<input type="text" id="bge-exc-'+i+'" style="width:80px;padding:.2rem .3rem;border:1px solid #cbd5e0;border-radius:4px;font-size:.75rem"><button class="btn-add-slot" onclick="bgeAddExisting('+i+')">+</button></span>';
+    exHtml+='</div></div>';
+    div.innerHTML='<div class="field-group"><label>Name</label><input type="text" value="'+esc(t.name)+'" onchange="_bgeTeachers['+i+'].name=this.value" style="min-width:130px"/></div>'+
+      '<div class="field-group"><label>Non-Contact/Wk</label><input type="number" value="'+(t.non_contact||0)+'" min="0" style="width:68px" onchange="_bgeTeachers['+i+'].non_contact=parseInt(this.value)||0"/></div>'+
+      exHtml+
+      '<button class="btn-delete" onclick="_bgeTeachers.splice('+i+',1);bgeRenderTeachers()">✕</button>';
+    c.appendChild(div);
+  });
+}
+function bgeAddExisting(i) {
+  const d=parseInt(document.getElementById('bge-exd-'+i).value);
+  const p=parseInt(document.getElementById('bge-exp-'+i).value);
+  const cn=document.getElementById('bge-exc-'+i).value.trim();
+  if(d>=1&&p>=1&&cn){(_bgeTeachers[i].existing=_bgeTeachers[i].existing||[]).push({day:d,period:p,class_name:cn});bgeRenderTeachers();}
+}
+function bgeImportSeniorPhase() {
+  openSavedTimetables('senior');
+}
+
+// ── BGE Step 2: Block Grid ──
+function bgeRenderBlockGrid() {
+  _bgeDays    = Math.max(1, parseInt(document.getElementById('bge-days').value)||5);
+  _bgePeriods = Math.max(1, parseInt(document.getElementById('bge-periods').value)||6);
+  _bgeTeachers.forEach(t=>{
+    (t.existing||[]).forEach(ex=>{
+      const key=t.name+'|'+ex.day+','+ex.period;
+      _bgeBlocked[key]=true;
+    });
+  });
+  const wrapper=document.getElementById('bge-block-grid'); wrapper.innerHTML='';
+  const table=document.createElement('table'); table.className='tr-table';
+  const thead=table.createTHead(); const hrow=thead.insertRow();
+  const thT=document.createElement('th'); thT.textContent='Teacher'; hrow.appendChild(thT);
+  for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+    const th=document.createElement('th'); th.textContent=(DAY_NAMES[d-1]||'D'+d)+'\nP'+p; th.style.whiteSpace='pre'; hrow.appendChild(th);
+  }
+  const tbody=table.createTBody();
+  _bgeTeachers.forEach(t=>{
+    const tr=tbody.insertRow();
+    const tdL=tr.insertCell(); tdL.className='row-label'; tdL.textContent=t.name;
+    for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+      const td=tr.insertCell(); td.className='bge-cell';
+      const key=t.name+'|'+d+','+p;
+      if(_bgeBlocked[key]){td.style.background='#e2e8f0';td.title='Blocked';}
+      else{td.style.cursor='pointer';}
+      td.addEventListener('click',()=>{
+        if(_bgeBlocked[key]){delete _bgeBlocked[key];}else{_bgeBlocked[key]=true;}
+        bgeRenderBlockGrid();
+      });
+    }
+  });
+  wrapper.appendChild(table);
+}
+
+// ── BGE Step 3: Classes ──
+function bgeAddClass() {
+  _bgeClasses.push({id:_bgeNextId++, name:'', periods_per_week:1});
+  bgeRenderClasses();
+}
+function bgeRenderClasses() {
+  const c=document.getElementById('bge-classes-container'); c.innerHTML='';
+  _bgeClasses.forEach((cls,i)=>{
+    const div=document.createElement('div'); div.className='item-row';
+    div.innerHTML='<div class="field-group"><label>Class Name</label><input type="text" value="'+esc(cls.name)+'" style="min-width:150px" onchange="_bgeClasses['+i+'].name=this.value"/></div>'+
+      '<div class="field-group"><label>Periods/Wk</label><input type="number" value="'+(cls.periods_per_week||1)+'" min="1" max="30" style="width:64px" onchange="_bgeClasses['+i+'].periods_per_week=parseInt(this.value)||1"/></div>'+
+      '<button class="btn-delete" onclick="_bgeClasses.splice('+i+',1);bgeRenderClasses()">✕</button>';
+    c.appendChild(div);
+  });
+}
+
+// ── BGE Step 4: Render ──
+function bgeRenderScheduleStep() {
+  if(_currentMode==='bge-manual') { bgeRenderManualGrid(); bgeRenderPalette(); bgeCheckConflicts(); }
+  else { document.getElementById('bge-auto-grid').innerHTML=''; }
+}
+function bgeRenderManualGrid() {
+  const wrapper=document.getElementById('bge-manual-grid'); wrapper.innerHTML='';
+  const table=document.createElement('table'); table.className='tr-table';
+  const thead=table.createTHead(); const hrow=thead.insertRow();
+  const thT=document.createElement('th'); thT.textContent='Teacher'; hrow.appendChild(thT);
+  for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+    const th=document.createElement('th'); th.textContent=(DAY_NAMES[d-1]||'D'+d)+'\nP'+p; th.style.whiteSpace='pre'; hrow.appendChild(th);
+  }
+  const conflicts=bgeComputeConflictSet();
+  const tbody=table.createTBody();
+  _bgeTeachers.forEach((t,ti)=>{
+    const tr=tbody.insertRow();
+    const tdL=tr.insertCell(); tdL.className='row-label teacher-colour-'+(ti%10); tdL.textContent=t.name;
+    for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+      const key=t.name+'|'+d+','+p;
+      const td=tr.insertCell();
+      td.className='bge-cell teacher-colour-'+(ti%10);
+      if(_bgeBlocked[key]){td.style.background='#e2e8f0';td.title='Blocked';}
+      else {
+        if(conflicts.has(key))td.classList.add('conflict');
+        td.addEventListener('dragover',ev=>{ev.preventDefault();td.style.outline='2px solid #3182ce';});
+        td.addEventListener('dragleave',()=>td.style.outline='');
+        td.addEventListener('drop',ev=>{ev.preventDefault();td.style.outline='';bgeDrop(t.name,d,p);});
+        const cls=_bgeGrid[key];
+        if(cls){
+          const chip=document.createElement('span');
+          chip.className='bge-chip draggable'; chip.textContent=cls; chip.draggable=true;
+          chip.addEventListener('dragstart',ev=>{chip.classList.add('dragging');_bgeDragging={from:key,className:cls};ev.dataTransfer.effectAllowed='move';});
+          chip.addEventListener('dragend',()=>{chip.classList.remove('dragging');_bgeDragging=null;});
+          const rmBtn=document.createElement('button');
+          rmBtn.textContent='×'; rmBtn.style.cssText='background:none;border:none;cursor:pointer;color:#a0aec0;font-size:.8rem;padding:0;margin-left:.15rem;line-height:1';
+          rmBtn.addEventListener('click',ev=>{ev.stopPropagation();delete _bgeGrid[key];bgeRenderManualGrid();bgeRenderPalette();bgeCheckConflicts();});
+          chip.appendChild(rmBtn);
+          td.appendChild(chip);
+        }
+      }
+    }
+  });
+  wrapper.appendChild(table);
+}
+function bgeDrop(teacher,day,period) {
+  if(!_bgeDragging) return;
+  const key=teacher+'|'+day+','+period;
+  if(_bgeBlocked[key]) return;
+  if(_bgeDragging.from) delete _bgeGrid[_bgeDragging.from];
+  _bgeGrid[key]=_bgeDragging.className;
+  _bgeDragging=null;
+  bgeRenderManualGrid(); bgeRenderPalette(); bgeCheckConflicts();
+}
+function bgeRenderPalette() {
+  const p=document.getElementById('bge-palette'); p.innerHTML='';
+  _bgeClasses.forEach(cls=>{
+    const placed=Object.values(_bgeGrid).filter(v=>v===cls.name).length;
+    const done=placed>=cls.periods_per_week;
+    const chip=document.createElement('div');
+    chip.className='palette-chip'+(done?' used':''); chip.draggable=!done;
+    chip.textContent=cls.name+' ('+placed+'/'+cls.periods_per_week+')';
+    chip.addEventListener('dragstart',ev=>{_bgeDragging={from:null,className:cls.name};ev.dataTransfer.effectAllowed='copy';});
+    p.appendChild(chip);
+  });
+}
+function bgeComputeConflictSet() {
+  const set=new Set();
+  _bgeTeachers.forEach(t=>{
+    const total=Object.entries(_bgeGrid).filter(([k])=>k.startsWith(t.name+'|')).length;
+    const blocked=Object.keys(_bgeBlocked).filter(k=>k.startsWith(t.name+'|')).length;
+    const available=_bgeDays*_bgePeriods - blocked - (t.non_contact||0);
+    if(total>available){
+      Object.entries(_bgeGrid).filter(([k])=>k.startsWith(t.name+'|')).forEach(([k])=>set.add(k));
+    }
+  });
+  _bgeClasses.forEach(cls=>{
+    const teachers=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cls.name).map(([k])=>k.split('|')[0]));
+    if(teachers.size>2){
+      Object.entries(_bgeGrid).filter(([,v])=>v===cls.name).forEach(([k])=>set.add(k));
+    }
+  });
+  return set;
+}
+function bgeCheckConflicts() {
+  const conflicts=bgeComputeConflictSet();
+  const c=document.getElementById('bge-manual-conflicts');
+  if(conflicts.size===0){c.innerHTML='<p style="color:#38a169;font-size:.85rem;margin-top:.5rem">✓ No conflicts.</p>';}
+  else{c.innerHTML='<p style="color:#e53e3e;font-size:.85rem;margin-top:.5rem">⚠ '+conflicts.size+' conflict slot(s) — check red cells.</p>';}
+}
+function bgeRunAutoAssign() {
+  const btn=document.getElementById('bge-auto-btn');
+  const status=document.getElementById('bge-auto-status');
+  btn.disabled=true; setStatusMsg(status,'Running…','');
+  _bgeGrid={};
+  const teacherSlots={};
+  _bgeTeachers.forEach(t=>{
+    teacherSlots[t.name]=[];
+    for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+      const key=t.name+'|'+d+','+p;
+      if(!_bgeBlocked[key]) teacherSlots[t.name].push(key);
+    }
+  });
+  let ok=true;
+  _bgeClasses.forEach(cls=>{
+    for(let n=0;n<cls.periods_per_week;n++){
+      const teachersForClass=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cls.name).map(([k])=>k.split('|')[0]));
+      const candidates=_bgeTeachers.filter(t=>{
+        if(teachersForClass.size>=2 && !teachersForClass.has(t.name)) return false;
+        return teacherSlots[t.name].some(k=>!_bgeGrid[k]);
+      });
+      if(candidates.length===0){ok=false;break;}
+      candidates.sort((a,b)=>{
+        const aHas=teachersForClass.has(a.name)?0:1;
+        const bHas=teachersForClass.has(b.name)?0:1;
+        if(aHas!==bHas) return aHas-bHas;
+        return teacherSlots[b.name].filter(k=>!_bgeGrid[k]).length - teacherSlots[a.name].filter(k=>!_bgeGrid[k]).length;
+      });
+      const t=candidates[0];
+      const freeSlot=teacherSlots[t.name].find(k=>!_bgeGrid[k]);
+      if(!freeSlot){ok=false;break;}
+      _bgeGrid[freeSlot]=cls.name;
+    }
+  });
+  btn.disabled=false;
+  setStatusMsg(status, ok ? 'Done ✓' : 'Some classes could not be fully placed — try adding more teachers or reducing periods.', ok?'ok':'error');
+  bgeRenderAutoGrid();
+}
+function bgeRenderAutoGrid() {
+  const wrapper=document.getElementById('bge-auto-grid'); wrapper.innerHTML='';
+  const table=document.createElement('table'); table.className='tr-table';
+  const thead=table.createTHead(); const hrow=thead.insertRow();
+  const thT=document.createElement('th'); thT.textContent='Teacher'; hrow.appendChild(thT);
+  for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+    const th=document.createElement('th'); th.textContent=(DAY_NAMES[d-1]||'D'+d)+'\nP'+p; th.style.whiteSpace='pre'; hrow.appendChild(th);
+  }
+  const tbody=table.createTBody();
+  _bgeTeachers.forEach((t,ti)=>{
+    const tr=tbody.insertRow();
+    const tdL=tr.insertCell(); tdL.className='row-label teacher-colour-'+(ti%10); tdL.textContent=t.name;
+    for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+      const key=t.name+'|'+d+','+p; const td=tr.insertCell();
+      td.className='bge-cell teacher-colour-'+(ti%10);
+      if(_bgeBlocked[key]){td.style.background='#e2e8f0';}
+      else if(_bgeGrid[key]){const chip=document.createElement('span');chip.className='bge-chip';chip.textContent=_bgeGrid[key];td.appendChild(chip);}
+    }
+  });
+  wrapper.appendChild(table);
+}
+function bgePrint() { window.print(); }
+
+// ── Rooms functions ──
+function gotoRoomsStep(n) {
+  for(let i=1;i<=4;i++){
+    const panel=document.getElementById('rooms-step-'+i);
+    const ind=document.getElementById('rm-ind-'+i);
+    if(!ind)continue;
+    if(i===n){if(panel)panel.classList.remove('hidden');ind.classList.add('active');ind.classList.remove('done');}
+    else{if(panel)panel.classList.add('hidden');ind.classList.remove('active');if(i<n)ind.classList.add('done');else ind.classList.remove('done');}
+  }
+  if(n===1) renderRoomsBGEPreview();
+  if(n===2) renderRoomsTeacherRooms();
+  if(n===3) { roomsBuildGrid(); renderRoomsGrid(); }
+  if(n===4) renderRoomsFinalGrid();
+}
+function renderRoomsBGEPreview() {
+  const el=document.getElementById('rooms-bge-preview');
+  if(!_roomsBGE){el.innerHTML='<p style="color:#a0aec0;font-size:.85rem">No BGE timetable loaded.</p>';return;}
+  el.innerHTML='<p style="color:#38a169;font-size:.85rem">✓ BGE timetable loaded: '+esc(Object.keys(_roomsBGE.grid||{}).length)+' scheduled entries.</p>';
+}
+function renderRoomsTeacherRooms() {
+  const teachers = _roomsBGE ? [...new Set(Object.keys(_roomsBGE.grid||{}).map(k=>k.split('|')[0]))] : [];
+  const c=document.getElementById('rooms-teacher-rooms'); c.innerHTML='';
+  teachers.forEach(name=>{
+    const div=document.createElement('div'); div.className='item-row';
+    const lbl=document.createElement('label'); lbl.className='field-group';
+    const span=document.createElement('span'); span.style.cssText='font-size:.68rem;color:#718096;text-transform:uppercase;letter-spacing:.05em;font-weight:600'; span.textContent=name;
+    const inp=document.createElement('input'); inp.type='text'; inp.placeholder='Home room';
+    inp.value=_roomsHomeRooms[name]||''; inp.style.minWidth='100px';
+    inp.addEventListener('change',()=>{_roomsHomeRooms[name]=inp.value;});
+    lbl.appendChild(span); lbl.appendChild(inp);
+    const wrap=document.createElement('div'); wrap.className='field-group'; wrap.appendChild(span); wrap.appendChild(inp);
+    div.appendChild(wrap); c.appendChild(div);
+  });
+}
+function roomsAddRule() {
+  _roomsRules.push({class_name:'',room:''});
+  renderRoomsRules();
+}
+function renderRoomsRules() {
+  const c=document.getElementById('rooms-rules-container'); c.innerHTML='';
+  _roomsRules.forEach((r,i)=>{
+    const div=document.createElement('div'); div.className='item-row';
+    div.innerHTML='<div class="field-group"><label>Class</label><input type="text" value="'+esc(r.class_name)+'" style="min-width:120px" onchange="_roomsRules['+i+'].class_name=this.value"/></div>'+
+      '<div class="field-group"><label>Room</label><input type="text" value="'+esc(r.room)+'" style="min-width:80px" onchange="_roomsRules['+i+'].room=this.value"/></div>'+
+      '<button class="btn-delete" onclick="_roomsRules.splice('+i+',1);renderRoomsRules()">✕</button>';
+    c.appendChild(div);
+  });
+}
+function roomsBuildGrid() {
+  if(!_roomsBGE) return;
+  const ruleMap={};
+  _roomsRules.forEach(r=>{if(r.class_name&&r.room)ruleMap[r.class_name]=r.room;});
+  Object.entries(_roomsBGE.grid||{}).forEach(([key,className])=>{
+    const teacher=key.split('|')[0];
+    if(ruleMap[className]) { _roomsGrid[key]=ruleMap[className]; }
+    else { _roomsGrid[key]=_roomsHomeRooms[teacher]||''; }
+  });
+}
+function renderRoomsGrid() {
+  if(!_roomsBGE){document.getElementById('rooms-grid').innerHTML='<p style="color:#a0aec0">No BGE data loaded.</p>';return;}
+  const days=_roomsBGE.days||_bgeDays; const periods=_roomsBGE.periods||_bgePeriods;
+  const teachers=[...new Set(Object.keys(_roomsBGE.grid||{}).map(k=>k.split('|')[0]))];
+  const ruleMap={}; _roomsRules.forEach(r=>{if(r.class_name&&r.room)ruleMap[r.class_name]=r.room;});
+  const wrapper=document.getElementById('rooms-grid'); wrapper.innerHTML='';
+  const table=document.createElement('table'); table.className='tr-table';
+  const thead=table.createTHead(); const hrow=thead.insertRow();
+  const thT=document.createElement('th'); thT.textContent='Teacher'; hrow.appendChild(thT);
+  for(let d=1;d<=days;d++) for(let p=1;p<=periods;p++){
+    const th=document.createElement('th'); th.textContent=(DAY_NAMES[d-1]||'D'+d)+'\nP'+p; th.style.whiteSpace='pre'; hrow.appendChild(th);
+  }
+  const slotRoomMap={};
+  Object.entries(_roomsGrid).forEach(([key,room])=>{
+    if(!room) return;
+    const slotPart=key.split('|')[1];
+    if(!slotRoomMap[slotPart]) slotRoomMap[slotPart]={};
+    (slotRoomMap[slotPart][room]=slotRoomMap[slotPart][room]||[]).push(key);
+  });
+  const conflictKeys=new Set();
+  Object.values(slotRoomMap).forEach(rMap=>{Object.values(rMap).forEach(keys=>{if(keys.length>1)keys.forEach(k=>conflictKeys.add(k));});});
+  const tbody=table.createTBody();
+  teachers.forEach((teacher,ti)=>{
+    const tr=tbody.insertRow();
+    const tdL=tr.insertCell(); tdL.className='row-label teacher-colour-'+(ti%10); tdL.textContent=teacher;
+    for(let d=1;d<=days;d++) for(let p=1;p<=periods;p++){
+      const key=teacher+'|'+d+','+p; const td=tr.insertCell(); td.className='bge-cell';
+      const className=(_roomsBGE.grid||{})[key];
+      if(!className){continue;}
+      const isLocked=!!(ruleMap[className]);
+      const room=_roomsGrid[key]||'';
+      if(isLocked){
+        td.className+=' room-cell-locked';
+        td.innerHTML='🔒 '+esc(room)+'<br><small style="color:#718096">'+esc(className)+'</small>';
+      } else {
+        if(conflictKeys.has(key)) td.classList.add('room-conflict');
+        const inp=document.createElement('input');
+        inp.type='text'; inp.value=room; inp.style.cssText='width:100%;border:none;background:transparent;font-size:.75rem;font-weight:700';
+        inp.title=className;
+        inp.addEventListener('change',()=>{_roomsGrid[key]=inp.value;renderRoomsGrid();});
+        td.appendChild(inp);
+        const lbl=document.createElement('div'); lbl.style.cssText='font-size:.62rem;color:#718096'; lbl.textContent=className;
+        td.appendChild(lbl);
+      }
+    }
+  });
+  wrapper.appendChild(table);
+}
+function renderRoomsFinalGrid() {
+  if(!_roomsBGE){document.getElementById('rooms-final-grid').innerHTML='<p style="color:#a0aec0">No BGE data loaded.</p>';return;}
+  const days=_roomsBGE.days||_bgeDays; const periods=_roomsBGE.periods||_bgePeriods;
+  const teachers=[...new Set(Object.keys(_roomsBGE.grid||{}).map(k=>k.split('|')[0]))];
+  const wrapper=document.getElementById('rooms-final-grid'); wrapper.innerHTML='';
+  const table=document.createElement('table'); table.className='tr-table';
+  const thead=table.createTHead(); const hrow=thead.insertRow();
+  ['Teacher','Day','Period','Class','Room'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hrow.appendChild(th);});
+  const tbody=table.createTBody();
+  teachers.forEach(teacher=>{
+    for(let d=1;d<=days;d++) for(let p=1;p<=periods;p++){
+      const key=teacher+'|'+d+','+p;
+      const className=(_roomsBGE.grid||{})[key];
+      if(!className) continue;
+      const room=_roomsGrid[key]||'—';
+      const tr=tbody.insertRow();
+      [teacher, DAY_NAMES[d-1]||'D'+d, 'P'+p, className, room].forEach(v=>{const td=tr.insertCell();td.textContent=v;td.style.cssText='border:1px solid #e2e8f0;padding:.3rem .5rem;font-size:.8rem';});
+    }
+  });
+  wrapper.appendChild(table);
+}
 </script>
 </body>
 </html>
