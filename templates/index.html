@@ -208,17 +208,17 @@
   <div class="step-bar">
     <div class="step-item active" id="step-indicator-1" onclick="goToStep(1)">
       <div class="step-num" id="step-num-1">1</div>
-      <div class="step-label">Classes</div>
+      <div class="step-label">Teachers</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="step-indicator-2" onclick="goToStep(2)">
       <div class="step-num" id="step-num-2">2</div>
-      <div class="step-label">Place on Grid</div>
+      <div class="step-label">Classes</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="step-indicator-3" onclick="goToStep(3)">
       <div class="step-num" id="step-num-3">3</div>
-      <div class="step-label">Teachers</div>
+      <div class="step-label">Place on Grid</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="step-indicator-4" onclick="goToStep(4)">
@@ -232,12 +232,30 @@
     </div>
   </div>
 
-  <!-- Step 1: Classes -->
+  <!-- Step 1: Teachers -->
   <div class="card" id="step-1">
-    <h2>Step 1 &#8212; Classes &amp; Configuration</h2>
+    <h2>Step 1 &#8212; Teacher Information &amp; Constraints</h2>
+    <p class="step-desc">
+      Enter each teacher's name, their non-contact entitlement (free periods per week),
+      and any slots when they are unavailable. Teachers defined here are available for
+      assignment to classes in Step 2.
+    </p>
+    <div class="form-section">
+      <h3>Teachers</h3>
+      <div id="teachers-container"></div>
+      <button class="btn-add-item" onclick="addTeacher()">+ Add Teacher</button>
+    </div>
+    <div class="step-nav">
+      <button class="btn-next" onclick="goToStep(2)" style="margin-left:auto">Next: Classes &#9658;</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Classes -->
+  <div class="card hidden" id="step-2">
+    <h2>Step 2 &#8212; Classes &amp; Configuration</h2>
     <p class="step-desc">
       Configure the timetable and enter each class to be scheduled.
-      For each class specify the subject, year group, level, how many periods per week
+      For each class specify the column (A–H), subject, year group, level, how many periods per week
       it meets, the number of parallel sections, an optional preferred room, and optionally
       which teacher should take each section. A teacher selected here is a
       <strong>hard rule</strong> &mdash; that teacher will be required to take that class.
@@ -263,41 +281,23 @@
       <button class="btn-add-item" onclick="addClass()">+ Add Class</button>
     </div>
     <div class="step-nav">
+      <button class="btn-prev" onclick="goToStep(1)">&#9668; Back to Teachers</button>
       <button class="btn-reset" id="btn-reset">&#8634; Reset to Example</button>
-      <button class="btn-next" onclick="goToStep(2)" style="margin-left:auto">Next: Place on Grid &#9658;</button>
+      <button class="btn-next" onclick="goToStep(3)" style="margin-left:auto">Next: Place on Grid &#9658;</button>
     </div>
   </div>
 
-  <!-- Step 2: Grid Placement -->
-  <div class="card hidden" id="step-2">
-    <h2>Step 2 &#8212; Timetable Grid Placement</h2>
+  <!-- Step 3: Grid Placement -->
+  <div class="card hidden" id="step-3">
+    <h2>Step 3 &#8212; Timetable Grid Placement</h2>
     <p class="step-desc">
       Click a class in the panel on the right to select it, then click a cell in the grid to
-      place it for that time slot. Each class shows a <strong>placed / total</strong> counter.
-      Click the <strong>&#215;</strong> on a placed badge to remove it from that slot.
+      place it for that time slot. Each class shows a <strong>placed / total</strong> counter
+      and its class code(s). Click the <strong>&#215;</strong> on a placed badge to remove it from that slot.
     </p>
     <div class="placement-layout" id="placement-layout"></div>
     <div class="step-nav">
-      <button class="btn-prev" onclick="goToStep(1)">&#9668; Back to Classes</button>
-      <button class="btn-next" onclick="goToStep(3)" style="margin-left:auto">Next: Teachers &#9658;</button>
-    </div>
-  </div>
-
-  <!-- Step 3: Teachers -->
-  <div class="card hidden" id="step-3">
-    <h2>Step 3 &#8212; Teacher Information &amp; Constraints</h2>
-    <p class="step-desc">
-      Enter each teacher's name, their non-contact entitlement (free periods per week),
-      and any slots when they are unavailable. Teachers defined here are available for
-      assignment to classes in Step 1.
-    </p>
-    <div class="form-section">
-      <h3>Teachers</h3>
-      <div id="teachers-container"></div>
-      <button class="btn-add-item" onclick="addTeacher()">+ Add Teacher</button>
-    </div>
-    <div class="step-nav">
-      <button class="btn-prev" onclick="goToStep(2)">&#9668; Back to Placement</button>
+      <button class="btn-prev" onclick="goToStep(2)">&#9668; Back to Classes</button>
       <button class="btn-next" onclick="goToStep(4)" style="margin-left:auto">Next: Auto-Assign &#9658;</button>
     </div>
   </div>
@@ -321,7 +321,7 @@
       <div id="assign-conflicts"></div>
     </div>
     <div class="step-nav">
-      <button class="btn-prev" onclick="goToStep(3)">&#9668; Back to Teachers</button>
+      <button class="btn-prev" onclick="goToStep(3)">&#9668; Back to Grid</button>
       <button class="btn-next hidden" id="btn-to-step5" onclick="goToStep(5)" style="margin-left:auto">Next: Resolve Conflicts &#9658;</button>
     </div>
   </div>
@@ -348,9 +348,10 @@
 
 <script>
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const SUBJECT_OPTIONS = ["Physics","Electronics","Mathematics","Chemistry","Biology","Computing","English","History","Geography","Art","Music","PE","RE","Other"];
+const SUBJECT_OPTIONS = ["Physics","Electronics"];
 const YEAR_GROUP_OPTIONS = ["S1","S2","S3","S4","S5","S6"];
 const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
+const COLUMN_OPTIONS = ["A","B","C","D","E","F","G","H"];
 
 // ── State ──
 function _defaultState() { return { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] }; }
@@ -451,7 +452,7 @@ function _showApp() {
     document.getElementById('tt-name').value = s.name;
     document.getElementById('tt-days').value = s.days_per_week;
     document.getElementById('tt-periods').value = s.periods_per_day;
-    renderClasses();
+    renderTeachers();
   }
   goToStep(1);
 }
@@ -461,10 +462,10 @@ const EXAMPLE = {
   name: "Trinity Physics Timetable",
   days_per_week: 5, periods_per_day: 6,
   classes: [
-    { id:0, subject:"Physics",     year_group:"S4", level:"Higher", periods_per_week:4, sections:2, room:"", section_teachers:["Ms. Smith","Mr. Jones"] },
-    { id:1, subject:"Electronics", year_group:"S4", level:"N5",     periods_per_week:3, sections:1, room:"", section_teachers:["Mr. Jones"] },
-    { id:2, subject:"Physics",     year_group:"S5", level:"AH",     periods_per_week:3, sections:1, room:"", section_teachers:["Ms. Smith"] },
-    { id:3, subject:"Physics",     year_group:"S3", level:"N5",     periods_per_week:4, sections:2, room:"", section_teachers:["Mrs. Brown",""] },
+    { id:0, subject:"Physics",     year_group:"S4", level:"Higher", periods_per_week:4, sections:2, room:"", column:"A", section_teachers:["Ms. Smith","Mr. Jones"] },
+    { id:1, subject:"Electronics", year_group:"S4", level:"N5",     periods_per_week:3, sections:1, room:"", column:"B", section_teachers:["Mr. Jones"] },
+    { id:2, subject:"Physics",     year_group:"S5", level:"AH",     periods_per_week:3, sections:1, room:"", column:"C", section_teachers:["Ms. Smith"] },
+    { id:3, subject:"Physics",     year_group:"S3", level:"N5",     periods_per_week:4, sections:2, room:"", column:"D", section_teachers:["Mrs. Brown",""] },
   ],
   placements: [
     {class_id:0,day:1,period:1},{class_id:0,day:2,period:2},{class_id:0,day:3,period:1},{class_id:0,day:4,period:3},
@@ -484,7 +485,7 @@ function esc(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 function levelAbbrev(level){const l=(level||"").trim().toLowerCase();if(l==="n5"||l==="national 5")return "N5";if(l==="higher"||l==="h")return "H";if(l==="ah"||l==="advanced higher")return "AH";return(level||"").substring(0,2).toUpperCase()||"XX";}
 function subjectInitial(s){return((s||"").trim()[0]||"X").toUpperCase();}
 function classShortName(cls){return(cls.year_group?cls.year_group+" ":"")+(cls.subject||"?")+(cls.level?" "+levelAbbrev(cls.level):"");}
-function getClassCode(cls,section){const yg=cls.year_group||"XX";const si=subjectInitial(cls.subject);const la=levelAbbrev(cls.level);return yg+"-"+si+"-"+la+"-"+cls.id+"-"+section;}
+function getClassCode(cls,section){const yg=cls.year_group||"XX";const si=subjectInitial(cls.subject);const la=levelAbbrev(cls.level);return yg+"-"+si+"-"+la+"-"+(cls.column||"A")+"-"+section;}
 function getClassCodes(cls){const c=[];for(let i=1;i<=(parseInt(cls.sections)||1);i++)c.push(getClassCode(cls,i));return c;}
 function slotChipsHtml(slots,fn){return slots.map((sl,j)=>'<span class="chip">D'+sl[0]+' P'+sl[1]+'<button class="chip-btn" onclick="_h[\''+fn+'\']('+j+')" title="Remove">\xd7</button></span>').join("");}
 function slotAddRowHtml(dId,pId,fn){return '<span class="slot-add-row">Day <input type="number" min="1" id="'+dId+'" style="width:44px" placeholder="1"/> Per <input type="number" min="1" id="'+pId+'" style="width:44px" placeholder="1"/> <button class="btn-add-slot" onclick="_h[\''+fn+'\']()">+</button></span>';}
@@ -502,8 +503,9 @@ function goToStep(n){
     else{if(panel)panel.classList.add("hidden");ind.classList.remove("active");if(i<n)ind.classList.add("done");else ind.classList.remove("done");}
   }
   currentStep=n;
-  if(n===2)renderPlacementGrid();
-  if(n===3)renderTeachers();
+  if(n===1)renderTeachers();
+  if(n===2)renderClasses();
+  if(n===3)renderPlacementGrid();
   if(n===5&&_step5Sessions.length)renderResolutionGrid();
 }
 
@@ -522,13 +524,13 @@ function renderClasses(){
     for(let j=0;j<n;j++){stHtml+='<div class="section-teacher-row"><span class="section-label">\u00a7'+(j+1)+'</span><select id="cls'+i+'-st'+j+'" onchange="s.classes['+i+'].section_teachers['+j+']=this.value">'+teacherOpts+"</select></div>";}
     stHtml+="</div>";
     const codeHtml=getClassCodes(cls).map(cd=>'<span class="code-badge">'+esc(cd)+"</span>").join(" ");
+    const colOpts=COLUMN_OPTIONS.map(v=>'<option value="'+v+'">'+v+"</option>").join("");
     const subjectOpts=SUBJECT_OPTIONS.map(v=>'<option value="'+esc(v)+'">'+esc(v)+"</option>").join("");
     const yearGroupOpts=YEAR_GROUP_OPTIONS.map(v=>'<option value="'+esc(v)+'">'+esc(v)+"</option>").join("");
     const levelOpts=LEVEL_OPTIONS.map(v=>'<option value="'+esc(v)+'">'+esc(v)+"</option>").join("");
-    const colName="COL_"+cls.id;
     div.innerHTML=
       '<div style="display:flex;flex-wrap:wrap;gap:.5rem;flex:1;align-items:flex-start">'+
-      '<div class="field-group"><label>Column</label><div style="padding:.25rem 0"><span class="code-badge" title="Unique column identifier">'+esc(colName)+'</span></div></div>'+
+      '<div class="field-group"><label>Column</label><select id="cls'+i+'-col" onchange="s.classes['+i+'].column=this.value;renderClasses()">'+colOpts+'</select></div>'+
       '<div class="field-group"><label>Subject</label><select id="cls'+i+'-subj" onchange="s.classes['+i+'].subject=this.value;renderClasses()">'+subjectOpts+'</select></div>'+
       '<div class="field-group"><label>Year Group</label><select id="cls'+i+'-yg" onchange="s.classes['+i+'].year_group=this.value;renderClasses()">'+yearGroupOpts+'</select></div>'+
       '<div class="field-group"><label>Level</label><select id="cls'+i+'-lvl" onchange="s.classes['+i+'].level=this.value;renderClasses()">'+levelOpts+'</select></div>'+
@@ -540,6 +542,8 @@ function renderClasses(){
       "</div>"+
       '<button class="btn-delete" onclick="removeClassAt('+i+')" title="Remove class">\u2715</button>';
     c.appendChild(div);
+    const colEl=document.getElementById("cls"+i+"-col");
+    if(colEl)colEl.value=cls.column||"A";
     const subjEl=document.getElementById("cls"+i+"-subj");
     if(subjEl)subjEl.value=cls.subject||"Physics";
     const ygEl=document.getElementById("cls"+i+"-yg");
@@ -551,7 +555,7 @@ function renderClasses(){
 }
 function onClassSectionsChange(i,n){n=Math.max(1,n);s.classes[i].sections=n;const st=s.classes[i].section_teachers||[];while(st.length<n)st.push("");s.classes[i].section_teachers=st.slice(0,n);renderClasses();}
 function removeClassAt(i){const cls=s.classes[i];s.placements=s.placements.filter(p=>p.class_id!==cls.id);if(_selectedPoolId===cls.id)_selectedPoolId=null;s.classes.splice(i,1);renderClasses();}
-function addClass(){const id=_nextId++;s.classes.push({id,subject:"Physics",year_group:"S4",level:"Higher",periods_per_week:4,sections:1,room:"",section_teachers:[""]});renderClasses();}
+function addClass(){const id=_nextId++;s.classes.push({id,subject:"Physics",year_group:"S4",level:"Higher",periods_per_week:4,sections:1,room:"",column:"A",section_teachers:[""]});renderClasses();}
 
 // ── Step 2: Grid Placement ──
 function renderPlacementGrid(){
@@ -578,8 +582,9 @@ function renderPlacementGrid(){
       (bySlot[d+","+p]||[]).forEach(pl=>{
         const cls=s.classes.find(c=>c.id===pl.class_id);if(!cls)return;
         const badge=document.createElement("div");badge.className="placed-badge";
+        const codes=getClassCodes(cls).join(", ");
         const sn=classShortName(cls);
-        badge.innerHTML='<span class="placed-badge-text" title="'+esc(sn)+'">'+esc(sn)+'</span><button class="rm-btn" title="Remove">\u00d7</button>';
+        badge.innerHTML='<span class="placed-badge-text" title="'+esc(sn)+'">'+esc(codes)+'</span><button class="rm-btn" title="Remove">\u00d7</button>';
         badge.querySelector(".rm-btn").addEventListener("click",ev=>{ev.stopPropagation();removePlacement(cls.id,d,p);});
         td.appendChild(badge);
       });
@@ -603,7 +608,8 @@ function renderPlacementGrid(){
       const item=document.createElement("div");
       item.className="pool-item"+(cls.id===_selectedPoolId?" selected":"")+(done?" complete":"");
       item.innerHTML='<div class="pool-item-name">'+esc(classShortName(cls))+(cls.sections>1?' <small>('+cls.sections+' sections)</small>':'')+
-        '</div><div class="pool-item-counter">'+placed+" / "+total+" periods placed"+(done?" \u2713":"")+' </div>';
+        '</div><div style="font-size:.68rem;color:#4a5568;margin-top:.1rem">'+esc(getClassCodes(cls).join(" · "))+'</div>'+
+        '<div class="pool-item-counter">'+placed+" / "+total+" periods placed"+(done?" \u2713":"")+' </div>';
       item.addEventListener("click",()=>selectPoolClass(cls.id));
       pool.appendChild(item);
     });
@@ -654,7 +660,7 @@ function buildScheduleConfig(){
   s.classes.forEach(cls=>{
     const placed=s.placements.filter(p=>p.class_id===cls.id);
     if(placed.length===0)return;
-    const colName="COL_"+cls.id;
+    const colName=cls.column||"A";
     const pinnedSlots=placed.map(p=>[p.day,p.period]);
     columns.push({name:colName,pinned_slots:pinnedSlots,unavailable:[]});
     const sectionCount=parseInt(cls.sections)||1;
