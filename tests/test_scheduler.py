@@ -502,3 +502,62 @@ def test_pinned_slots_teacher_conflict_via_json():
     # One of the four pinned slots is blocked → exactly one session unschedulable
     assert len(hard) == 1
     assert hard[0].category == "unschedulable"
+
+
+# ---------------------------------------------------------------------------
+# Auto-assignment: subjects with no teacher get one from the pool
+# ---------------------------------------------------------------------------
+
+
+def test_auto_assign_picks_teacher_for_empty_subject():
+    """When a subject has no teacher, the scheduler assigns one from the pool."""
+    config = make_config(
+        teachers=[Teacher("Ms. Smith"), Teacher("Mr. Jones")],
+        columns=[Column("A", pinned_slots=[(1, 1), (2, 1)])],
+        subjects=[Subject("Physics", "A", teacher="", periods_per_week=2)],
+    )
+    assignments, conflicts = Scheduler(config).schedule()
+    hard = [c for c in conflicts if c.severity == "hard"]
+    assert hard == [], f"Unexpected hard conflicts: {hard}"
+    assert len(assignments) == 2
+    for a in assignments:
+        assert a.teacher in {"Ms. Smith", "Mr. Jones"}, (
+            f"Expected auto-assigned teacher, got '{a.teacher}'"
+        )
+
+
+def test_auto_assign_respects_unavailability():
+    """Auto-assigned teacher must not be placed in their unavailable slot."""
+    config = make_config(
+        teachers=[
+            Teacher("Ms. Smith", unavailable=[(1, 1)]),
+            Teacher("Mr. Jones"),
+        ],
+        columns=[Column("A", pinned_slots=[(1, 1)])],
+        subjects=[Subject("Physics", "A", teacher="", periods_per_week=1)],
+    )
+    assignments, _ = Scheduler(config).schedule()
+    assert len(assignments) == 1
+    assert assignments[0].teacher == "Mr. Jones", (
+        "Ms. Smith is unavailable at (1,1); Mr. Jones should be auto-assigned"
+    )
+
+
+def test_auto_assign_detects_double_booking_conflict():
+    """If auto-assignment cannot avoid double-booking, a hard conflict is reported."""
+    # Only one teacher available, two classes pinned to the same slot
+    config = make_config(
+        teachers=[Teacher("Ms. Smith")],
+        columns=[
+            Column("A", pinned_slots=[(1, 1)]),
+            Column("B", pinned_slots=[(1, 1)]),
+        ],
+        subjects=[
+            Subject("Physics", "A", teacher="", periods_per_week=1),
+            Subject("Chemistry", "B", teacher="", periods_per_week=1),
+        ],
+    )
+    assignments, conflicts = Scheduler(config).schedule()
+    hard = [c for c in conflicts if c.severity == "hard"]
+    # Either one class can't be placed, or double-booking is detected
+    assert hard, "Expected a hard conflict when one teacher is double-booked"

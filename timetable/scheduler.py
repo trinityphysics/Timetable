@@ -29,7 +29,7 @@ Algorithm
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
-from .models import Assignment, Column, Conflict, Slot, Subject, TimetableConfig
+from .models import Assignment, Column, Conflict, Slot, Subject, Teacher, TimetableConfig
 
 
 class Scheduler:
@@ -310,11 +310,29 @@ class Scheduler:
 
         Also allocate rooms: use the subject's requested room if available,
         otherwise pick any free room; flag a hard conflict if none exists.
+
+        When a subject has no teacher assigned, one is automatically chosen
+        from the available teacher pool (respecting unavailability and
+        avoiding double-booking at the same slot).  The same teacher is
+        reused for all sessions of a subject to preserve consistency.
         """
         room_names = [r.name for r in self.config.rooms]
 
         # rooms_used_at[slot] = set of room names already allocated at that slot
         rooms_used_at: Dict[Slot, Set[str]] = defaultdict(set)
+
+        # teacher_used_at[slot] = set of teacher names already teaching at that slot
+        teacher_used_at: Dict[Slot, Set[str]] = defaultdict(set)
+
+        # Seed teacher_used_at from subjects that already have an assigned teacher
+        for (col_name, instance), slot in slot_assignments.items():
+            for subj in self._col_subjects.get(col_name, []):
+                if instance < subj.periods_per_week and subj.teacher:
+                    teacher_used_at[slot].add(subj.teacher)
+
+        # Remember which teacher was auto-chosen per subject so all sessions
+        # of the same subject stay with one teacher.
+        subject_auto_teacher: Dict[str, str] = {}
 
         # Group tasks by slot for deterministic ordering
         ordered: List[Tuple[Tuple[str, int], Slot]] = sorted(
@@ -329,6 +347,42 @@ class Scheduler:
                 if instance >= subj.periods_per_week:
                     continue
 
+                assigned_teacher = subj.teacher
+                if not assigned_teacher:
+                    # Try to reuse the teacher already chosen for this subject
+                    if subj.name in subject_auto_teacher:
+                        preferred = subject_auto_teacher[subj.name]
+                        t_obj = self.teacher_map.get(preferred)
+                        busy = teacher_used_at.get(slot, set())
+                        if t_obj and t_obj.is_available(slot) and preferred not in busy:
+                            assigned_teacher = preferred
+                        else:
+                            # Fall back to any available teacher
+                            assigned_teacher = self._pick_teacher(slot, teacher_used_at)
+                    else:
+                        assigned_teacher = self._pick_teacher(slot, teacher_used_at)
+
+                    if assigned_teacher:
+                        subject_auto_teacher.setdefault(subj.name, assigned_teacher)
+                    else:
+                        # No teacher available — record a hard conflict
+                        self.conflicts.append(
+                            Conflict(
+                                severity="hard",
+                                category="no_teacher_available",
+                                description=(
+                                    f"No available teacher for '{subj.name}' "
+                                    f"at Day {slot[0]}, Period {slot[1]}."
+                                ),
+                                day=slot[0],
+                                period=slot[1],
+                                subjects=[subj.name],
+                            )
+                        )
+
+                if assigned_teacher:
+                    teacher_used_at[slot].add(assigned_teacher)
+
                 assigned_room = self._allocate_room(
                     subj, slot, rooms_used_at, room_names
                 )
@@ -337,12 +391,40 @@ class Scheduler:
                     Assignment(
                         subject=subj.name,
                         column=col_name,
-                        teacher=subj.teacher,
+                        teacher=assigned_teacher,
                         room=assigned_room,
                         day=slot[0],
                         period=slot[1],
                     )
                 )
+
+    def _pick_teacher(
+        self,
+        slot: Slot,
+        teacher_used_at: Dict[Slot, Set[str]],
+    ) -> str:
+        """
+        Choose an available teacher for *slot* from the configured teacher pool.
+
+        Respects each teacher's unavailable slots and avoids double-booking
+        (a teacher already committed at this slot is excluded).  Among valid
+        candidates the one with the fewest existing assignments is preferred
+        (simple load-balancing).  Returns an empty string if no teacher is
+        available.
+        """
+        busy_at_slot = teacher_used_at.get(slot, set())
+        candidates = [
+            t
+            for t in self.config.teachers
+            if t.is_available(slot) and t.name not in busy_at_slot
+        ]
+        if not candidates:
+            return ""
+        # Load-balance: prefer the teacher with the fewest sessions so far
+        def teacher_load(t: Teacher) -> int:
+            return sum(1 for a in self.assignments if a.teacher == t.name)
+
+        return min(candidates, key=teacher_load).name
 
     def _allocate_room(
         self,
@@ -424,7 +506,31 @@ class Scheduler:
     # ------------------------------------------------------------------
 
     def _check_soft_constraints(self) -> None:
-        """Append soft conflicts for workload and preference violations."""
+        """Append soft/hard conflicts for workload and constraint violations."""
+
+        # --- Teacher double-booking check ---
+        # After auto-assignment, detect any teacher scheduled for two classes
+        # at the same slot and record a hard conflict visible in the grid.
+        teacher_slot_subjects: Dict[Tuple[str, Slot], List[str]] = defaultdict(list)
+        for a in self.assignments:
+            if a.teacher:
+                teacher_slot_subjects[(a.teacher, a.slot)].append(a.subject)
+        for (teacher_name, slot), subjects in teacher_slot_subjects.items():
+            if len(subjects) > 1:
+                self.conflicts.append(
+                    Conflict(
+                        severity="hard",
+                        category="teacher_double_booked",
+                        description=(
+                            f"Teacher '{teacher_name}' is scheduled for multiple "
+                            f"classes at Day {slot[0]}, Period {slot[1]}: "
+                            f"{', '.join(subjects)}."
+                        ),
+                        day=slot[0],
+                        period=slot[1],
+                        subjects=subjects,
+                    )
+                )
 
         # --- Teacher consecutive-period overload ---
         MAX_CONSECUTIVE = 4
