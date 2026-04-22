@@ -458,10 +458,11 @@
   <!-- BGE Step 1: Teachers -->
   <div class="card" id="bge-step-1">
     <h2>BGE Step 1 — Teachers &amp; Pre-existing Commitments</h2>
-    <p class="step-desc">Enter teachers. For each teacher, optionally record existing Senior Phase commitments (day, period, class name) — these will be blocked in Step 2.</p>
-    <div style="margin-bottom:.75rem">
+    <p class="step-desc">Import one or more saved Senior Phase timetables — teacher commitments will be merged and automatically blocked in Step 2. You can also manually enter teachers and their existing commitments below.</p>
+    <div style="margin-bottom:.75rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center">
       <button class="btn-sm btn-sm-blue" onclick="bgeImportSeniorPhase()">📥 Import from Saved Senior Phase</button>
     </div>
+    <div id="bge-import-banner" class="hidden" style="margin-bottom:.75rem;padding:.45rem .75rem;background:#f0fff4;border:1px solid #c6f6d5;border-radius:5px;font-size:.8rem;color:#276749"></div>
     <div class="form-section">
       <h3>Teachers</h3>
       <div id="bge-teachers-container"></div>
@@ -491,7 +492,7 @@
   <!-- BGE Step 3: New classes -->
   <div class="card hidden" id="bge-step-3">
     <h2>BGE Step 3 — New Classes to Schedule</h2>
-    <p class="step-desc">Add the BGE classes you want to schedule. Each class needs a name and the number of periods per week.</p>
+    <p class="step-desc">Add the BGE classes you want to schedule. Select the class group (1M / 1D / 1I / 2M / 2D / 2I) and then a letter (a–e) to form the class code, e.g. <strong>1de</strong>. Imported Senior Phase data does not appear here — it is used only as blocked slots in Step 2.</p>
     <div id="bge-classes-container"></div>
     <button class="btn-add-item" onclick="bgeAddClass()">+ Add Class</button>
     <div class="step-nav">
@@ -624,12 +625,31 @@
   </div>
 </div>
 
+<!-- BGE Senior Phase Import Modal -->
+<div id="bge-import-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h2>📥 Import Senior Phase Timetable(s)</h2>
+      <button class="btn-sm btn-sm-red" onclick="document.getElementById('bge-import-modal').classList.add('hidden')">✕ Close</button>
+    </div>
+    <p style="font-size:.82rem;color:#718096;margin-bottom:.75rem">Select one or more Senior Phase timetables to import. Teacher commitments will be merged as blocked slots in BGE. You can import additional timetables later to combine them.</p>
+    <div id="bge-import-list"></div>
+    <p id="bge-import-empty" class="hidden" style="font-size:.85rem;color:#a0aec0;text-align:center;padding:1.5rem 0">No saved Senior Phase timetables found. Save a Senior Phase timetable first.</p>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;padding-top:.75rem;border-top:1px solid #e2e8f0">
+      <button class="btn-action" onclick="bgeConfirmImport()">📥 Import Selected</button>
+      <button class="btn-prev" onclick="document.getElementById('bge-import-modal').classList.add('hidden')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const SUBJECT_OPTIONS = ["Physics","Electronics","Chemistry","Biology","Lab Skills","Beekeeping"];
 const YEAR_GROUP_OPTIONS = ["S1","S2","S3","S4","S5","S6"];
 const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 const COLUMN_OPTIONS = ["A","B","C","D","E","F","G","H"];
+const BGE_PREFIXES = ["1M","1D","1I","2M","2D","2I"];
+const BGE_SUFFIXES = ["a","b","c","d","e"];
 
 // ── State ──
 function _defaultState() { return { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] }; }
@@ -652,6 +672,7 @@ let _bgeClasses  = [];
 let _bgeGrid     = {};
 let _bgeDragging = null;
 let _bgeNextId   = 0;
+let _bgeImportedTimetables = []; // [{name, savedAt}]
 // Rooms state
 let _roomsBGE    = null;
 let _roomsHomeRooms = {};
@@ -1259,7 +1280,7 @@ function gotoBGEStep(n) {
     if(i===n){if(panel)panel.classList.remove('hidden');ind.classList.add('active');ind.classList.remove('done');}
     else{if(panel)panel.classList.add('hidden');ind.classList.remove('active');if(i<n)ind.classList.add('done');else ind.classList.remove('done');}
   }
-  if(n===1) bgeRenderTeachers();
+  if(n===1) { bgeRenderTeachers(); bgeRenderImportBanner(); }
   if(n===2) bgeRenderBlockGrid();
   if(n===3) bgeRenderClasses();
   if(n===4) bgeRenderScheduleStep();
@@ -1292,7 +1313,78 @@ function bgeAddExisting(i) {
   if(d>=1&&p>=1&&cn){(_bgeTeachers[i].existing=_bgeTeachers[i].existing||[]).push({day:d,period:p,class_name:cn});bgeRenderTeachers();}
 }
 function bgeImportSeniorPhase() {
-  openSavedTimetables('senior');
+  const modal = document.getElementById('bge-import-modal');
+  const list  = document.getElementById('bge-import-list');
+  const empty = document.getElementById('bge-import-empty');
+  const saves = _getSavedTimetables().filter(sv => sv.mode === 'senior');
+  list.innerHTML = '';
+  if(saves.length === 0) {
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    saves.forEach((sv, i) => {
+      const row = document.createElement('div');
+      row.className = 'saved-row';
+      const d = new Date(sv.savedAt);
+      const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      const alreadyImported = _bgeImportedTimetables.some(it => it.name === sv.name && it.savedAt === sv.savedAt);
+      row.innerHTML = '<label style="display:flex;align-items:center;gap:.5rem;flex:1;cursor:pointer">'+
+        '<input type="checkbox" id="bge-import-chk-'+i+'" '+(alreadyImported?'checked':'')+'>'+
+        '<div class="saved-row-info">'+
+          '<div class="saved-row-name">'+esc(sv.name)+(alreadyImported?' <span style="color:#38a169;font-size:.7rem">(already imported)</span>':'')+'</div>'+
+          '<div class="saved-row-meta">'+esc(dateStr)+'</div>'+
+        '</div></label>';
+      list.appendChild(row);
+    });
+  }
+  modal.classList.remove('hidden');
+}
+function bgeConfirmImport() {
+  const saves = _getSavedTimetables().filter(sv => sv.mode === 'senior');
+  const selectedSaves = saves.filter((sv, i) => {
+    const chk = document.getElementById('bge-import-chk-'+i);
+    return chk && chk.checked;
+  });
+  if(selectedSaves.length === 0) { alert('Please select at least one timetable to import.'); return; }
+  let maxDay = _bgeDays, maxPeriod = _bgePeriods;
+  selectedSaves.forEach(sv => {
+    const sessions = sv.data.sessions || [];
+    const seniorTeachers = (sv.data.s && sv.data.s.teachers) || [];
+    sessions.forEach(sess => {
+      if(!sess.teacher) return;
+      maxDay    = Math.max(maxDay,    sess.day    || 1);
+      maxPeriod = Math.max(maxPeriod, sess.period || 1);
+      let bgeT = _bgeTeachers.find(t => t.name === sess.teacher);
+      if(!bgeT) {
+        const st = seniorTeachers.find(t => t.name === sess.teacher);
+        bgeT = {name: sess.teacher, non_contact: (st && st.non_contact) || 0, unavailable: [], existing: []};
+        _bgeTeachers.push(bgeT);
+      }
+      const exists = (bgeT.existing || []).some(ex => ex.day === sess.day && ex.period === sess.period);
+      if(!exists) {
+        (bgeT.existing = bgeT.existing || []).push({day: sess.day, period: sess.period, class_name: sess.subject});
+      }
+    });
+    if(!_bgeImportedTimetables.some(it => it.name === sv.name && it.savedAt === sv.savedAt)) {
+      _bgeImportedTimetables.push({name: sv.name, savedAt: sv.savedAt});
+    }
+  });
+  // Expand grid size if imported sessions go beyond current settings
+  if(maxDay > _bgeDays) { _bgeDays = maxDay; document.getElementById('bge-days').value = maxDay; }
+  if(maxPeriod > _bgePeriods) { _bgePeriods = maxPeriod; document.getElementById('bge-periods').value = maxPeriod; }
+  document.getElementById('bge-import-modal').classList.add('hidden');
+  bgeRenderTeachers();
+  bgeRenderImportBanner();
+  alert('Imported ' + selectedSaves.length + ' timetable(s). Teachers and their Senior Phase commitments are now visible in Step 1 and will be automatically blocked in Step 2.');
+}
+function bgeRenderImportBanner() {
+  const banner = document.getElementById('bge-import-banner');
+  if(!banner) return;
+  if(_bgeImportedTimetables.length === 0) { banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+  banner.innerHTML = '✓ <strong>Imported Senior Phase timetables:</strong> ' +
+    _bgeImportedTimetables.map(it => esc(it.name)).join(', ') +
+    ' &mdash; teacher slots are blocked in Step 2.';
 }
 
 // ── BGE Step 2: Block Grid ──
@@ -1330,19 +1422,47 @@ function bgeRenderBlockGrid() {
   wrapper.appendChild(table);
 }
 
+// ── BGE Class name helpers ──
+function bgeClassName(cls) {
+  if(cls.prefix) return cls.prefix.toLowerCase() + (cls.suffix || 'a');
+  return cls.name || '';
+}
+function bgeUpdateClassName(i) {
+  const cls = _bgeClasses[i];
+  const oldName = cls.name;
+  const newName = bgeClassName(cls);
+  if(oldName !== newName) {
+    Object.keys(_bgeGrid).forEach(k => { if(_bgeGrid[k] === oldName) _bgeGrid[k] = newName; });
+    cls.name = newName;
+  }
+  bgeRenderClasses();
+}
+
 // ── BGE Step 3: Classes ──
 function bgeAddClass() {
-  _bgeClasses.push({id:_bgeNextId++, name:'', periods_per_week:1});
+  _bgeClasses.push({id:_bgeNextId++, prefix:'1M', suffix:'a', name:'1ma', periods_per_week:1});
   bgeRenderClasses();
 }
 function bgeRenderClasses() {
   const c=document.getElementById('bge-classes-container'); c.innerHTML='';
+  const prefixOpts=BGE_PREFIXES.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+  const suffixOpts=BGE_SUFFIXES.map(sf=>'<option value="'+sf+'">'+sf+'</option>').join('');
   _bgeClasses.forEach((cls,i)=>{
     const div=document.createElement('div'); div.className='item-row';
-    div.innerHTML='<div class="field-group"><label>Class Name</label><input type="text" value="'+esc(cls.name)+'" style="min-width:150px" onchange="_bgeClasses['+i+'].name=this.value"/></div>'+
+    const cn=bgeClassName(cls);
+    div.innerHTML=
+      '<div class="field-group"><label>Group</label>'+
+      '<select id="bge-cls-pfx-'+i+'" onchange="_bgeClasses['+i+'].prefix=this.value;bgeUpdateClassName('+i+')">'+prefixOpts+'</select></div>'+
+      '<div class="field-group"><label>Letter</label>'+
+      '<select id="bge-cls-sfx-'+i+'" onchange="_bgeClasses['+i+'].suffix=this.value;bgeUpdateClassName('+i+')">'+suffixOpts+'</select></div>'+
+      '<div class="field-group"><label>Code</label><span class="code-badge" style="display:inline-flex;align-items:center;padding:.3rem .5rem;font-size:.85rem">'+esc(cn)+'</span></div>'+
       '<div class="field-group"><label>Periods/Wk</label><input type="number" value="'+(cls.periods_per_week||1)+'" min="1" max="30" style="width:64px" onchange="_bgeClasses['+i+'].periods_per_week=parseInt(this.value)||1"/></div>'+
       '<button class="btn-delete" onclick="_bgeClasses.splice('+i+',1);bgeRenderClasses()">✕</button>';
     c.appendChild(div);
+    const pfxEl=document.getElementById('bge-cls-pfx-'+i);
+    if(pfxEl) pfxEl.value=cls.prefix||'1M';
+    const sfxEl=document.getElementById('bge-cls-sfx-'+i);
+    if(sfxEl) sfxEl.value=cls.suffix||'a';
   });
 }
 
@@ -1403,12 +1523,13 @@ function bgeDrop(teacher,day,period) {
 function bgeRenderPalette() {
   const p=document.getElementById('bge-palette'); p.innerHTML='';
   _bgeClasses.forEach(cls=>{
-    const placed=Object.values(_bgeGrid).filter(v=>v===cls.name).length;
+    const cn=bgeClassName(cls);
+    const placed=Object.values(_bgeGrid).filter(v=>v===cn).length;
     const done=placed>=cls.periods_per_week;
     const chip=document.createElement('div');
     chip.className='palette-chip'+(done?' used':''); chip.draggable=!done;
-    chip.textContent=cls.name+' ('+placed+'/'+cls.periods_per_week+')';
-    chip.addEventListener('dragstart',ev=>{_bgeDragging={from:null,className:cls.name};ev.dataTransfer.effectAllowed='copy';});
+    chip.textContent=cn+' ('+placed+'/'+cls.periods_per_week+')';
+    chip.addEventListener('dragstart',ev=>{_bgeDragging={from:null,className:cn};ev.dataTransfer.effectAllowed='copy';});
     p.appendChild(chip);
   });
 }
@@ -1423,9 +1544,10 @@ function bgeComputeConflictSet() {
     }
   });
   _bgeClasses.forEach(cls=>{
-    const teachers=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cls.name).map(([k])=>k.split('|')[0]));
+    const cn=bgeClassName(cls);
+    const teachers=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cn).map(([k])=>k.split('|')[0]));
     if(teachers.size>2){
-      Object.entries(_bgeGrid).filter(([,v])=>v===cls.name).forEach(([k])=>set.add(k));
+      Object.entries(_bgeGrid).filter(([,v])=>v===cn).forEach(([k])=>set.add(k));
     }
   });
   return set;
@@ -1451,8 +1573,9 @@ function bgeRunAutoAssign() {
   });
   let ok=true;
   _bgeClasses.forEach(cls=>{
+    const cn=bgeClassName(cls);
     for(let n=0;n<cls.periods_per_week;n++){
-      const teachersForClass=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cls.name).map(([k])=>k.split('|')[0]));
+      const teachersForClass=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cn).map(([k])=>k.split('|')[0]));
       const candidates=_bgeTeachers.filter(t=>{
         if(teachersForClass.size>=2 && !teachersForClass.has(t.name)) return false;
         return teacherSlots[t.name].some(k=>!_bgeGrid[k]);
@@ -1467,7 +1590,7 @@ function bgeRunAutoAssign() {
       const t=candidates[0];
       const freeSlot=teacherSlots[t.name].find(k=>!_bgeGrid[k]);
       if(!freeSlot){ok=false;break;}
-      _bgeGrid[freeSlot]=cls.name;
+      _bgeGrid[freeSlot]=cn;
     }
   });
   btn.disabled=false;
