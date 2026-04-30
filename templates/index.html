@@ -209,6 +209,20 @@
     .palette-chip { background:#fff; border:2px solid #3182ce; border-radius:6px; padding:.3rem .65rem; font-size:.8rem; font-weight:700; color:#2b6cb0; cursor:grab; user-select:none; }
     .palette-chip:hover { background:#ebf8ff; }
     .palette-chip.used { border-color:#38a169; color:#276749; background:#f0fff4; }
+    /* Period toggle buttons in BGE Step 3 */
+    .period-selector { display:flex; flex-direction:column; gap:.25rem; margin-top:.2rem; }
+    .period-toggle-row { display:flex; gap:.2rem; align-items:center; flex-wrap:wrap; }
+    .period-toggle-day-label { font-size:.65rem; color:#718096; font-weight:700; width:30px; flex-shrink:0; }
+    .period-toggle { font-size:.65rem; padding:.12rem .3rem; border:1px solid #cbd5e0; border-radius:3px; cursor:pointer; background:#f7fafc; color:#4a5568; line-height:1.3; }
+    .period-toggle:hover { border-color:#4299e1; background:#ebf8ff; color:#2b6cb0; }
+    .period-toggle.active { background:#3182ce; color:#fff; border-color:#2b6cb0; font-weight:700; }
+    /* Period column rows in BGE Step 4 */
+    .bge-period-col-sep td { background:#4a5568; padding:.2rem .5rem; color:#fff; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; text-align:center; }
+    .bge-period-col-cell { border:1px solid #e2e8f0; padding:.3rem; vertical-align:top; background:#fafafa; min-height:44px; }
+    .period-class-chip { background:#fff; border:2px solid #3182ce; border-radius:5px; padding:.22rem .45rem; margin-bottom:.22rem; font-size:.72rem; font-weight:700; color:#2b6cb0; cursor:grab; user-select:none; display:block; }
+    .period-class-chip:hover { background:#ebf8ff; }
+    .period-class-chip.period-done { border-color:#38a169; color:#276749; background:#f0fff4; cursor:default; }
+    .period-class-chip-counter { display:block; font-size:.62rem; font-weight:400; opacity:.75; margin-top:.05rem; }
     .teacher-colour-0  { background:#ebf8ff; } .teacher-colour-1  { background:#f0fff4; }
     .teacher-colour-2  { background:#fffff0; } .teacher-colour-3  { background:#fff5f5; }
     .teacher-colour-4  { background:#faf5ff; } .teacher-colour-5  { background:#fffaf0; }
@@ -492,7 +506,7 @@
   <!-- BGE Step 3: New classes -->
   <div class="card hidden" id="bge-step-3">
     <h2>BGE Step 3 — New Classes to Schedule</h2>
-    <p class="step-desc">Add the BGE classes you want to schedule. Select the class group (1M / 1D / 1I / 2M / 2D / 2I) and then a letter (a–e) to form the class code, e.g. <strong>1de</strong>. Imported Senior Phase data does not appear here — it is used only as blocked slots in Step 2.</p>
+    <p class="step-desc">Add the BGE classes you want to schedule. Select the class group (1M / 1D / 1I / 2M / 2D / 2I) and then a letter (a–e) to form the class code, e.g. <strong>1de</strong>. Use the period buttons (Mon P1, Mon P2 …) to select exactly which periods that class occurs. Imported Senior Phase data does not appear here — it is used only as blocked slots in Step 2.</p>
     <div id="bge-classes-container"></div>
     <button class="btn-add-item" onclick="bgeAddClass()">+ Add Class</button>
     <div class="step-nav">
@@ -505,10 +519,11 @@
   <div class="card hidden" id="bge-step-4">
     <div id="bge-step4-manual">
       <h2>BGE Step 4 — Manual Scheduling</h2>
-      <p class="step-desc">Drag a class chip from the palette onto a teacher row / period cell. Conflicts are highlighted in red.</p>
+      <p class="step-desc">Drag a class chip from the period columns below onto the matching teacher row / period cell. Each class chip only accepts the corresponding period column above. Conflicts are highlighted in red.</p>
       <div class="timetable-wrapper" id="bge-manual-grid"></div>
-      <div class="palette-area no-print">
-        <h3>Classes to Place</h3>
+      <div class="palette-area no-print hidden" id="bge-unassigned-area">
+        <h3>⚠ Classes Without Periods Assigned</h3>
+        <p class="pool-hint">These classes have no periods selected. Go back to Step 3 to assign their periods.</p>
         <div class="palette-chips" id="bge-palette"></div>
       </div>
       <div id="bge-manual-conflicts" style="margin-top:.5rem"></div>
@@ -650,6 +665,9 @@ const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 const COLUMN_OPTIONS = ["A","B","C","D","E","F","G","H"];
 const BGE_PREFIXES = ["1M","1D","1I","2M","2D","2I"];
 const BGE_SUFFIXES = ["a","b","c","d","e"];
+// Maximum teaching periods per week for a BGE teacher (school policy: 27 − non-contact).
+// With a standard non-contact allowance of 6, a teacher may cover up to 21 BGE periods.
+const BGE_MAX_TEACHING_PERIODS = 27;
 
 // ── State ──
 function _defaultState() { return { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] }; }
@@ -1236,6 +1254,11 @@ function loadSavedTimetable(idx, filterMode) {
       _bgeBlocked  = sv.data.blocked  || {};
       _bgeClasses  = sv.data.classes  || [];
       _bgeGrid     = sv.data.grid     || {};
+      // Restore grid dimensions (backward-compat: fall back to current inputs)
+      if(sv.data.days)    { _bgeDays    = sv.data.days;    document.getElementById('bge-days').value    = _bgeDays; }
+      if(sv.data.periods) { _bgePeriods = sv.data.periods; document.getElementById('bge-periods').value = _bgePeriods; }
+      // Backward-compat: ensure all classes have period_slots
+      _bgeClasses.forEach(cls=>{ if(!cls.period_slots) cls.period_slots=[]; });
     }
   } else if(sv.mode === 'rooms') {
     _roomsHomeRooms = sv.data.homeRooms||{};
@@ -1262,7 +1285,7 @@ function confirmSaveTimetable() {
   if(_pendingSaveMode === 'senior') {
     data = { s: JSON.parse(JSON.stringify(s)), _nextId, result: _scheduleResult, sessions: _step5Sessions.map(x=>Object.assign({},x)) };
   } else if(_pendingSaveMode === 'bge') {
-    data = { teachers: _bgeTeachers, blocked: _bgeBlocked, classes: _bgeClasses, grid: _bgeGrid };
+    data = { teachers: _bgeTeachers, blocked: _bgeBlocked, classes: _bgeClasses, grid: _bgeGrid, days: _bgeDays, periods: _bgePeriods };
   } else if(_pendingSaveMode === 'rooms') {
     data = { homeRooms: _roomsHomeRooms, rules: _roomsRules, grid: _roomsGrid, bge: _roomsBGE };
   }
@@ -1440,7 +1463,7 @@ function bgeUpdateClassName(i) {
 
 // ── BGE Step 3: Classes ──
 function bgeAddClass() {
-  _bgeClasses.push({id:_bgeNextId++, prefix:'1M', suffix:'a', name:'1ma', periods_per_week:1});
+  _bgeClasses.push({id:_bgeNextId++, prefix:'1M', suffix:'a', name:'1ma', period_slots:[]});
   bgeRenderClasses();
 }
 function bgeRenderClasses() {
@@ -1448,22 +1471,51 @@ function bgeRenderClasses() {
   const prefixOpts=BGE_PREFIXES.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
   const suffixOpts=BGE_SUFFIXES.map(sf=>'<option value="'+sf+'">'+sf+'</option>').join('');
   _bgeClasses.forEach((cls,i)=>{
-    const div=document.createElement('div'); div.className='item-row';
+    // Backward compat: ensure period_slots exists
+    if(!cls.period_slots) cls.period_slots = [];
+    const div=document.createElement('div'); div.className='item-row'; div.style.flexWrap='wrap';
     const cn=bgeClassName(cls);
+    const ppw = cls.period_slots.length;
+    // Build period toggle grid
+    let periodHtml = '<div class="field-group" style="width:100%;margin-top:.4rem"><label>Periods When Class Occurs ('+ppw+' selected)</label><div class="period-selector">';
+    for(let d=1;d<=_bgeDays;d++){
+      periodHtml += '<div class="period-toggle-row"><span class="period-toggle-day-label">'+(DAY_NAMES[d-1]||'D'+d)+'</span>';
+      for(let p=1;p<=_bgePeriods;p++){
+        const isActive = cls.period_slots.some(ps=>ps.day===d&&ps.period===p);
+        periodHtml += '<button class="period-toggle'+(isActive?' active':'')+'" onclick="bgePeriodToggle('+i+','+d+','+p+')" title="'+(DAY_NAMES[d-1]||'D'+d)+' P'+p+'">P'+p+'</button>';
+      }
+      periodHtml += '</div>';
+    }
+    periodHtml += '</div></div>';
     div.innerHTML=
+      '<div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-start;width:100%">'+
       '<div class="field-group"><label>Group</label>'+
       '<select id="bge-cls-pfx-'+i+'" onchange="_bgeClasses['+i+'].prefix=this.value;bgeUpdateClassName('+i+')">'+prefixOpts+'</select></div>'+
       '<div class="field-group"><label>Letter</label>'+
       '<select id="bge-cls-sfx-'+i+'" onchange="_bgeClasses['+i+'].suffix=this.value;bgeUpdateClassName('+i+')">'+suffixOpts+'</select></div>'+
       '<div class="field-group"><label>Code</label><span class="code-badge" style="display:inline-flex;align-items:center;padding:.3rem .5rem;font-size:.85rem">'+esc(cn)+'</span></div>'+
-      '<div class="field-group"><label>Periods/Wk</label><input type="number" value="'+(cls.periods_per_week||1)+'" min="1" max="30" style="width:64px" onchange="_bgeClasses['+i+'].periods_per_week=parseInt(this.value)||1"/></div>'+
-      '<button class="btn-delete" onclick="_bgeClasses.splice('+i+',1);bgeRenderClasses()">✕</button>';
+      '<button class="btn-delete" style="margin-left:auto" onclick="_bgeClasses.splice('+i+',1);bgeRenderClasses()">✕</button>'+
+      '</div>'+
+      periodHtml;
     c.appendChild(div);
     const pfxEl=document.getElementById('bge-cls-pfx-'+i);
     if(pfxEl) pfxEl.value=cls.prefix||'1M';
     const sfxEl=document.getElementById('bge-cls-sfx-'+i);
     if(sfxEl) sfxEl.value=cls.suffix||'a';
   });
+}
+function bgePeriodToggle(i, day, period) {
+  const cls = _bgeClasses[i];
+  if(!cls.period_slots) cls.period_slots = [];
+  const idx = cls.period_slots.findIndex(ps=>ps.day===day&&ps.period===period);
+  if(idx>=0) {
+    cls.period_slots.splice(idx,1);
+  } else {
+    cls.period_slots.push({day, period});
+    cls.period_slots.sort((a,b)=>a.day!==b.day?a.day-b.day:a.period-b.period);
+  }
+  cls.periods_per_week = cls.period_slots.length;
+  bgeRenderClasses();
 }
 
 // ── BGE Step 4: Render ──
@@ -1491,14 +1543,24 @@ function bgeRenderManualGrid() {
       if(_bgeBlocked[key]){td.style.background='#e2e8f0';td.title='Blocked';}
       else {
         if(conflicts.has(key))td.classList.add('conflict');
-        td.addEventListener('dragover',ev=>{ev.preventDefault();td.style.outline='2px solid #3182ce';});
+        td.addEventListener('dragover',ev=>{
+          if(!_bgeDragging) return;
+          // Enforce period constraint: only allow drop if chip is for this period (or has no constraint)
+          if(_bgeDragging.allowedDay!==undefined && (_bgeDragging.allowedDay!==d || _bgeDragging.allowedPeriod!==p)) return;
+          ev.preventDefault(); td.style.outline='2px solid #3182ce';
+        });
         td.addEventListener('dragleave',()=>td.style.outline='');
         td.addEventListener('drop',ev=>{ev.preventDefault();td.style.outline='';bgeDrop(t.name,d,p);});
         const cls=_bgeGrid[key];
         if(cls){
           const chip=document.createElement('span');
           chip.className='bge-chip draggable'; chip.textContent=cls; chip.draggable=true;
-          chip.addEventListener('dragstart',ev=>{chip.classList.add('dragging');_bgeDragging={from:key,className:cls};ev.dataTransfer.effectAllowed='move';});
+          chip.addEventListener('dragstart',ev=>{
+            chip.classList.add('dragging');
+            // When re-dragging a placed chip, restrict to the same period it occupies
+            _bgeDragging={from:key,className:cls,allowedDay:d,allowedPeriod:p};
+            ev.dataTransfer.effectAllowed='move';
+          });
           chip.addEventListener('dragend',()=>{chip.classList.remove('dragging');_bgeDragging=null;});
           const rmBtn=document.createElement('button');
           rmBtn.textContent='×'; rmBtn.style.cssText='background:none;border:none;cursor:pointer;color:#a0aec0;font-size:.8rem;padding:0;margin-left:.15rem;line-height:1';
@@ -1509,27 +1571,77 @@ function bgeRenderManualGrid() {
       }
     }
   });
+  // ── Period class columns (below teacher rows) ──
+  const hasSlottedClasses = _bgeClasses.some(cls=>(cls.period_slots||[]).length>0);
+  if(hasSlottedClasses) {
+    // Separator row
+    const sepRow=tbody.insertRow(); sepRow.className='bge-period-col-sep';
+    const sepTd=sepRow.insertCell(); sepTd.colSpan=_bgeDays*_bgePeriods+1;
+    sepTd.textContent='Classes by Period — drag each chip to the matching teacher cell above';
+    // Classes row: one cell per (day, period)
+    const pRow=tbody.insertRow();
+    const pLbl=pRow.insertCell();
+    pLbl.className='row-label';
+    pLbl.style.cssText='background:#edf2f7;font-size:.65rem;font-weight:700;color:#4a5568;vertical-align:top;padding:.35rem .3rem;white-space:nowrap';
+    pLbl.innerHTML='↕<br>Classes';
+    for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
+      const td=pRow.insertCell(); td.className='bge-period-col-cell';
+      const classesForPeriod=_bgeClasses.filter(cls=>(cls.period_slots||[]).some(ps=>ps.day===d&&ps.period===p));
+      classesForPeriod.forEach(cls=>{
+        const cn=bgeClassName(cls);
+        const totalNeeded=(cls.period_slots||[]).length || cls.periods_per_week || 1;
+        const totalPlaced=Object.values(_bgeGrid).filter(v=>v===cn).length;
+        const placedInThisPeriod=Object.entries(_bgeGrid).filter(([k,v])=>{
+          if(v!==cn) return false;
+          const parts=k.split('|'); if(parts.length<2) return false;
+          const dp=parts[1].split(',');
+          return parseInt(dp[0],10)===d && parseInt(dp[1],10)===p;
+        }).length;
+        const isThisDone=placedInThisPeriod>=1;
+        const chip=document.createElement('div');
+        chip.className='period-class-chip'+(isThisDone?' period-done':'');
+        chip.draggable=!isThisDone;
+        chip.innerHTML=esc(cn)+'<span class="period-class-chip-counter">'+totalPlaced+'/'+totalNeeded+' placed</span>';
+        if(!isThisDone){
+          chip.addEventListener('dragstart',ev=>{
+            _bgeDragging={from:null,className:cn,allowedDay:d,allowedPeriod:p};
+            ev.dataTransfer.effectAllowed='copy';
+          });
+          chip.addEventListener('dragend',()=>{_bgeDragging=null;});
+        }
+        td.appendChild(chip);
+      });
+    }
+  }
   wrapper.appendChild(table);
 }
 function bgeDrop(teacher,day,period) {
   if(!_bgeDragging) return;
   const key=teacher+'|'+day+','+period;
   if(_bgeBlocked[key]) return;
+  // Enforce period constraint: if chip has an assigned period, only allow matching drop
+  if(_bgeDragging.allowedDay!==undefined && (_bgeDragging.allowedDay!==day || _bgeDragging.allowedPeriod!==period)) return;
   if(_bgeDragging.from) delete _bgeGrid[_bgeDragging.from];
   _bgeGrid[key]=_bgeDragging.className;
   _bgeDragging=null;
   bgeRenderManualGrid(); bgeRenderPalette(); bgeCheckConflicts();
 }
 function bgeRenderPalette() {
+  // Only show classes that have no period_slots assigned (legacy / unassigned)
   const p=document.getElementById('bge-palette'); p.innerHTML='';
-  _bgeClasses.forEach(cls=>{
+  const area=document.getElementById('bge-unassigned-area');
+  const unassigned=_bgeClasses.filter(cls=>!cls.period_slots||cls.period_slots.length===0);
+  if(area) area.classList.toggle('hidden', unassigned.length===0);
+  unassigned.forEach(cls=>{
     const cn=bgeClassName(cls);
     const placed=Object.values(_bgeGrid).filter(v=>v===cn).length;
-    const done=placed>=cls.periods_per_week;
+    const needed=cls.periods_per_week||1;
+    const done=placed>=needed;
     const chip=document.createElement('div');
     chip.className='palette-chip'+(done?' used':''); chip.draggable=!done;
-    chip.textContent=cn+' ('+placed+'/'+cls.periods_per_week+')';
-    chip.addEventListener('dragstart',ev=>{_bgeDragging={from:null,className:cn};ev.dataTransfer.effectAllowed='copy';});
+    chip.textContent=cn+' ('+placed+'/'+needed+')';
+    // Unassigned chips have no period constraint
+    chip.addEventListener('dragstart',ev=>{_bgeDragging={from:null,className:cn,allowedDay:undefined,allowedPeriod:undefined};ev.dataTransfer.effectAllowed='copy';});
     p.appendChild(chip);
   });
 }
@@ -1538,7 +1650,8 @@ function bgeComputeConflictSet() {
   _bgeTeachers.forEach(t=>{
     const total=Object.entries(_bgeGrid).filter(([k])=>k.startsWith(t.name+'|')).length;
     const blocked=Object.keys(_bgeBlocked).filter(k=>k.startsWith(t.name+'|')).length;
-    const available=_bgeDays*_bgePeriods - blocked - (t.non_contact||0);
+    // Available = min(grid slots minus blocked, BGE_MAX_TEACHING_PERIODS) minus non-contact entitlement
+    const available=Math.min(_bgeDays*_bgePeriods - blocked, BGE_MAX_TEACHING_PERIODS) - (t.non_contact||0);
     if(total>available){
       Object.entries(_bgeGrid).filter(([k])=>k.startsWith(t.name+'|')).forEach(([k])=>set.add(k));
     }
@@ -1574,7 +1687,8 @@ function bgeRunAutoAssign() {
   let ok=true;
   _bgeClasses.forEach(cls=>{
     const cn=bgeClassName(cls);
-    for(let n=0;n<cls.periods_per_week;n++){
+    const ppw=(cls.period_slots&&cls.period_slots.length>0)?cls.period_slots.length:(cls.periods_per_week||1);
+    for(let n=0;n<ppw;n++){
       const teachersForClass=new Set(Object.entries(_bgeGrid).filter(([,v])=>v===cn).map(([k])=>k.split('|')[0]));
       const candidates=_bgeTeachers.filter(t=>{
         if(teachersForClass.size>=2 && !teachersForClass.has(t.name)) return false;
