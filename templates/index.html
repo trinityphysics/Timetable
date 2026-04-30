@@ -665,6 +665,9 @@ const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 const COLUMN_OPTIONS = ["A","B","C","D","E","F","G","H"];
 const BGE_PREFIXES = ["1M","1D","1I","2M","2D","2I"];
 const BGE_SUFFIXES = ["a","b","c","d","e"];
+// Maximum teaching periods per week for a BGE teacher (school policy: 27 − non-contact).
+// With a standard non-contact allowance of 6, a teacher may cover up to 21 BGE periods.
+const BGE_MAX_TEACHING_PERIODS = 27;
 
 // ── State ──
 function _defaultState() { return { name:"Timetable", days_per_week:5, periods_per_day:6, classes:[], placements:[], teachers:[] }; }
@@ -1460,7 +1463,7 @@ function bgeUpdateClassName(i) {
 
 // ── BGE Step 3: Classes ──
 function bgeAddClass() {
-  _bgeClasses.push({id:_bgeNextId++, prefix:'1M', suffix:'a', name:'1ma', period_slots:[], periods_per_week:0});
+  _bgeClasses.push({id:_bgeNextId++, prefix:'1M', suffix:'a', name:'1ma', period_slots:[]});
   bgeRenderClasses();
 }
 function bgeRenderClasses() {
@@ -1588,7 +1591,12 @@ function bgeRenderManualGrid() {
         const cn=bgeClassName(cls);
         const totalNeeded=(cls.period_slots||[]).length || cls.periods_per_week || 1;
         const totalPlaced=Object.values(_bgeGrid).filter(v=>v===cn).length;
-        const placedInThisPeriod=Object.entries(_bgeGrid).filter(([k,v])=>v===cn&&k.split('|')[1]===(d+','+p)).length;
+        const placedInThisPeriod=Object.entries(_bgeGrid).filter(([k,v])=>{
+          if(v!==cn) return false;
+          const parts=k.split('|'); if(parts.length<2) return false;
+          const dp=parts[1].split(',');
+          return parseInt(dp[0],10)===d && parseInt(dp[1],10)===p;
+        }).length;
         const isThisDone=placedInThisPeriod>=1;
         const chip=document.createElement('div');
         chip.className='period-class-chip'+(isThisDone?' period-done':'');
@@ -1639,12 +1647,11 @@ function bgeRenderPalette() {
 }
 function bgeComputeConflictSet() {
   const set=new Set();
-  const MAX_TEACHING_PERIODS=27; // school-wide hard cap on total periods a teacher can cover
   _bgeTeachers.forEach(t=>{
     const total=Object.entries(_bgeGrid).filter(([k])=>k.startsWith(t.name+'|')).length;
     const blocked=Object.keys(_bgeBlocked).filter(k=>k.startsWith(t.name+'|')).length;
-    // Available = min(grid slots minus blocked, 27) minus non-contact entitlement
-    const available=Math.min(_bgeDays*_bgePeriods - blocked, MAX_TEACHING_PERIODS) - (t.non_contact||0);
+    // Available = min(grid slots minus blocked, BGE_MAX_TEACHING_PERIODS) minus non-contact entitlement
+    const available=Math.min(_bgeDays*_bgePeriods - blocked, BGE_MAX_TEACHING_PERIODS) - (t.non_contact||0);
     if(total>available){
       Object.entries(_bgeGrid).filter(([k])=>k.startsWith(t.name+'|')).forEach(([k])=>set.add(k));
     }
