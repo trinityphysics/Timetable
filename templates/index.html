@@ -203,6 +203,7 @@
     .bge-chip { display:inline-block; background:#ebf8ff; border:1px solid #bee3f8; border-radius:4px; padding:.1rem .3rem; font-size:.68rem; font-weight:700; color:#2b6cb0; margin:.05rem; cursor:default; }
     .bge-chip.draggable { cursor:grab; }
     .bge-chip.dragging { opacity:.4; }
+    .bge-chip.preassigned { background:#f0fff4; border-color:#c6f6d5; color:#276749; }
     .palette-area { background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:.75rem; margin-top:1rem; }
     .palette-area h3 { font-size:.75rem; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.5rem; }
     .palette-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
@@ -536,6 +537,9 @@
         <span class="status-msg" id="bge-auto-status"></span>
       </div>
       <div class="timetable-wrapper" id="bge-auto-grid"></div>
+      <div id="bge-auto-fill-area" class="hidden" style="margin-top:.5rem">
+        <button id="bge-fill-preassigned-btn" class="btn-sm btn-sm-green no-print" onclick="bgeFillPreassignedToggle()">&#128203; Fill Pre-Assigned Slots</button>
+      </div>
     </div>
     <div class="step-nav">
       <button class="btn-prev" onclick="gotoBGEStep(3)">← Back</button>
@@ -689,6 +693,7 @@ let _bgeDays = 5; let _bgePeriods = 6;
 let _bgeClasses  = [];
 let _bgeGrid     = {};
 let _bgeDragging = null;
+let _bgeFillPreassigned = false;
 let _bgeNextId   = 0;
 let _bgeImportedTimetables = []; // [{name, savedAt}]
 // Rooms state
@@ -1540,7 +1545,9 @@ function bgeRenderManualGrid() {
       const key=t.name+'|'+d+','+p;
       const td=tr.insertCell();
       td.className='bge-cell teacher-colour-'+(ti%10);
-      if(_bgeBlocked[key]){td.style.background='#e2e8f0';td.title='Blocked';}
+      if(_bgeBlocked[key]){td.style.background='#e2e8f0';td.title='Blocked';
+        if(_bgeFillPreassigned){const pa=bgeGetPreassigned(t.name,d,p);if(pa){const chip=document.createElement('span');chip.className='bge-chip preassigned';chip.textContent=pa;td.appendChild(chip);}}
+      }
       else {
         if(conflicts.has(key))td.classList.add('conflict');
         td.addEventListener('dragover',ev=>{
@@ -1665,11 +1672,25 @@ function bgeComputeConflictSet() {
   });
   return set;
 }
+function bgeGetPreassigned(teacherName,day,period){
+  const t=_bgeTeachers.find(t=>t.name===teacherName);
+  if(!t||!t.existing)return null;
+  const ex=t.existing.find(e=>e.day===day&&e.period===period);
+  return ex?(ex.class_name||null):null;
+}
+function bgeFillPreassignedToggle(){
+  _bgeFillPreassigned=!_bgeFillPreassigned;
+  if(_currentMode==='bge-manual'){bgeRenderManualGrid();bgeRenderPalette();bgeCheckConflicts();}
+  else{bgeRenderAutoGrid();const btn=document.getElementById('bge-fill-preassigned-btn');if(btn)btn.textContent=_bgeFillPreassigned?'\uD83D\uDC41 Hide Pre-Assigned Classes':'\uD83D\uDCCB Fill Pre-Assigned Slots';}
+}
 function bgeCheckConflicts() {
   const conflicts=bgeComputeConflictSet();
   const c=document.getElementById('bge-manual-conflicts');
-  if(conflicts.size===0){c.innerHTML='<p style="color:#38a169;font-size:.85rem;margin-top:.5rem">✓ No conflicts.</p>';}
-  else{c.innerHTML='<p style="color:#e53e3e;font-size:.85rem;margin-top:.5rem">⚠ '+conflicts.size+' conflict slot(s) — check red cells.</p>';}
+  if(conflicts.size===0){
+    const btnLabel=_bgeFillPreassigned?'&#128065; Hide Pre-Assigned Classes':'&#128203; Fill Pre-Assigned Slots';
+    c.innerHTML='<p style="color:#38a169;font-size:.85rem;margin-top:.5rem">\u2713 No conflicts.</p>'+
+      '<button class="btn-sm btn-sm-green no-print" style="margin-top:.4rem" onclick="bgeFillPreassignedToggle()">'+btnLabel+'</button>';
+  }else{c.innerHTML='<p style="color:#e53e3e;font-size:.85rem;margin-top:.5rem">&#9888; '+conflicts.size+' conflict slot(s) \u2014 check red cells.</p>';}
 }
 function bgeRunAutoAssign() {
   const btn=document.getElementById('bge-auto-btn');
@@ -1709,7 +1730,10 @@ function bgeRunAutoAssign() {
   });
   btn.disabled=false;
   setStatusMsg(status, ok ? 'Done ✓' : 'Some classes could not be fully placed — try adding more teachers or reducing periods.', ok?'ok':'error');
+  _bgeFillPreassigned=false;
   bgeRenderAutoGrid();
+  const fillArea=document.getElementById('bge-auto-fill-area');
+  if(fillArea){fillArea.classList.toggle('hidden',!ok);const fillBtn=document.getElementById('bge-fill-preassigned-btn');if(fillBtn)fillBtn.textContent='\uD83D\uDCCB Fill Pre-Assigned Slots';}
 }
 function bgeRenderAutoGrid() {
   const wrapper=document.getElementById('bge-auto-grid'); wrapper.innerHTML='';
@@ -1726,7 +1750,9 @@ function bgeRenderAutoGrid() {
     for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
       const key=t.name+'|'+d+','+p; const td=tr.insertCell();
       td.className='bge-cell teacher-colour-'+(ti%10);
-      if(_bgeBlocked[key]){td.style.background='#e2e8f0';}
+      if(_bgeBlocked[key]){td.style.background='#e2e8f0';
+        if(_bgeFillPreassigned){const pa=bgeGetPreassigned(t.name,d,p);if(pa){const chip=document.createElement('span');chip.className='bge-chip preassigned';chip.textContent=pa;td.appendChild(chip);}}
+      }
       else if(_bgeGrid[key]){const chip=document.createElement('span');chip.className='bge-chip';chip.textContent=_bgeGrid[key];td.appendChild(chip);}
     }
   });
