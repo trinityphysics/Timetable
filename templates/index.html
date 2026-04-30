@@ -492,7 +492,7 @@
   <!-- BGE Step 2: Block slots -->
   <div class="card hidden" id="bge-step-2">
     <h2>BGE Step 2 — Block Existing Slots</h2>
-    <p class="step-desc">Grey cells are pre-blocked from Senior Phase commitments. Click a cell to toggle additional blocks.</p>
+    <p class="step-desc">Grey cells are pre-blocked from Senior Phase commitments. Click a cell to toggle additional blocks. For any blocked cell you can type a class name directly into it — this will appear in the "Fill Pre-Assigned Slots" view in Step 4.</p>
     <div style="margin-bottom:.5rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
       <div class="field-group"><label>Days/Wk</label><input type="number" id="bge-days" value="5" min="1" max="7" style="width:62px" onchange="bgeRenderBlockGrid()"/></div>
       <div class="field-group"><label>Periods/Day</label><input type="number" id="bge-periods" value="6" min="1" max="20" style="width:62px" onchange="bgeRenderBlockGrid()"/></div>
@@ -689,6 +689,7 @@ let _currentMode = 'landing';
 // BGE state
 let _bgeTeachers = [];
 let _bgeBlocked  = {};
+let _bgeBlockedNames = {}; // Preserves class names across block/unblock toggles
 let _bgeDays = 5; let _bgePeriods = 6;
 let _bgeClasses  = [];
 let _bgeGrid     = {};
@@ -1419,10 +1420,17 @@ function bgeRenderImportBanner() {
 function bgeRenderBlockGrid() {
   _bgeDays    = Math.max(1, parseInt(document.getElementById('bge-days').value)||5);
   _bgePeriods = Math.max(1, parseInt(document.getElementById('bge-periods').value)||6);
+  // Populate _bgeBlocked from each teacher's existing commitments, preserving
+  // any class name. A manually-typed name (stored as a string) is kept as-is;
+  // if the slot isn't already recorded we write the class name from t.existing.
   _bgeTeachers.forEach(t=>{
     (t.existing||[]).forEach(ex=>{
       const key=t.name+'|'+ex.day+','+ex.period;
-      _bgeBlocked[key]=true;
+      if(!_bgeBlocked[key] || _bgeBlocked[key]===true) {
+        _bgeBlocked[key]=ex.class_name||true;
+      }
+      // Keep _bgeBlockedNames in sync so toggling doesn't lose imported names
+      if(ex.class_name && !_bgeBlockedNames[key]) _bgeBlockedNames[key]=ex.class_name;
     });
   });
   const wrapper=document.getElementById('bge-block-grid'); wrapper.innerHTML='';
@@ -1439,10 +1447,36 @@ function bgeRenderBlockGrid() {
     for(let d=1;d<=_bgeDays;d++) for(let p=1;p<=_bgePeriods;p++){
       const td=tr.insertCell(); td.className='bge-cell';
       const key=t.name+'|'+d+','+p;
-      if(_bgeBlocked[key]){td.style.background='#e2e8f0';td.title='Blocked';}
-      else{td.style.cursor='pointer';}
+      if(_bgeBlocked[key]){
+        td.style.background='#e2e8f0';
+        td.title='Blocked — click to unblock';
+        // Editable class-name input inside the blocked cell
+        const inp=document.createElement('input');
+        inp.type='text';
+        inp.value=(typeof _bgeBlocked[key]==='string')?_bgeBlocked[key]:'';
+        inp.placeholder='Class…';
+        inp.style.cssText='width:100%;border:none;background:transparent;font-size:.65rem;padding:.1rem .15rem;color:#4a5568;cursor:text;';
+        inp.title='Type the class name for this blocked slot';
+        // Prevent the cell click from toggling the block when interacting with the input
+        inp.addEventListener('click',ev=>ev.stopPropagation());
+        inp.addEventListener('change',()=>{
+          const v=inp.value.trim();
+          _bgeBlocked[key]=v||true;
+          if(v) _bgeBlockedNames[key]=v;
+        });
+        td.appendChild(inp);
+      } else {
+        td.style.cursor='pointer';
+      }
       td.addEventListener('click',()=>{
-        if(_bgeBlocked[key]){delete _bgeBlocked[key];}else{_bgeBlocked[key]=true;}
+        if(_bgeBlocked[key]){
+          // Remember class name before unblocking so it can be restored
+          if(typeof _bgeBlocked[key]==='string' && _bgeBlocked[key]) _bgeBlockedNames[key]=_bgeBlocked[key];
+          delete _bgeBlocked[key];
+        }else{
+          // Restore previously remembered class name, if any
+          _bgeBlocked[key]=_bgeBlockedNames[key]||true;
+        }
         bgeRenderBlockGrid();
       });
     }
@@ -1673,6 +1707,9 @@ function bgeComputeConflictSet() {
   return set;
 }
 function bgeGetPreassigned(teacherName,day,period){
+  // First check if a class name was stored directly in _bgeBlocked (manually typed or from existing commitments)
+  const bKey=teacherName+'|'+day+','+period;
+  if(typeof _bgeBlocked[bKey]==='string' && _bgeBlocked[bKey]) return _bgeBlocked[bKey];
   const t=_bgeTeachers.find(t=>t.name===teacherName);
   if(!t||!t.existing)return null;
   const ex=t.existing.find(e=>e.day===day&&e.period===period);
