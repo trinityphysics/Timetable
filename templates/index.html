@@ -2146,10 +2146,6 @@ function distRenderTable(yg) {
     const suggested = distSuggestedSections(e.enrolled);
     const sections  = e.sections != null ? e.sections : suggested;
 
-    let selectedSubject = SUBJECT_OPTIONS.includes(e.subject) ? e.subject : '';
-    const subjOptsRow = '<option value="' + esc(e.subject) + '"' + (selectedSubject ? '' : ' selected') + '>' + esc(e.subject) + '</option>' +
-      SUBJECT_OPTIONS.filter(v => v !== e.subject).map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
-
     const slotsHtml = (e.slots || []).map((sl, j) =>
       '<span class="chip">D' + sl.day + ' P' + sl.period +
       '<button class="chip-btn" onclick="distRemoveSlot(\'' + esc(yg) + '\',' + i + ',' + j + ')">×</button></span>'
@@ -2213,13 +2209,7 @@ function distUpdateEntry(yg, idx, field, val) {
 function distUpdateEnrolled(yg, idx, val) {
   if (!_distEntries[yg] || !_distEntries[yg][idx]) return;
   _distEntries[yg][idx].enrolled = val;
-  // Only auto-update sections if not manually overridden
-  if (_distEntries[yg][idx].sections === null) {
-    distRenderTable(yg);
-  } else {
-    // Just update the suggested badge without full re-render
-    distRenderTable(yg);
-  }
+  distRenderTable(yg);
 }
 
 function distAddSlot(yg, idx) {
