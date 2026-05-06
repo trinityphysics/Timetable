@@ -266,7 +266,7 @@
   </style>
 </head>
 <body>
-<header onclick="showMode('landing')" style="cursor:pointer" title="Return to main menu">
+<header onclick="showMode('landing')" onkeydown="if(event.key==='Enter'||event.key===' ')showMode('landing')" tabindex="0" style="cursor:pointer" title="Return to main menu" role="button" aria-label="Timetable Scheduler — click to return to main menu">
   <span>🗓️</span>
   <h1>Timetable Scheduler</h1>
   <div id="user-badge" class="hidden" style="margin-left:auto;display:flex;align-items:center;gap:.75rem">
@@ -2327,7 +2327,7 @@ function distRenderTable(yg) {
       '</select></td>' +
       '<td><input type="number" min="1" max="100" value="' + (entryMaxSize || '') + '" style="width:64px" ' +
         'placeholder="' + _distMaxClassSize + '" ' +
-        'title="Override max class size for this subject (blank = use global default of ' + _distMaxClassSize + ')" ' +
+        'title="Override max class size for this subject (blank = use global default of ' + esc(String(_distMaxClassSize)) + ')" ' +
         'onchange="distUpdateMaxSize(\'' + esc(yg) + '\',' + i + ',this.value)"/></td>' +
       '<td><input type="number" min="0" value="' + (e.enrolled || 0) + '" style="width:72px" ' +
         'onchange="distUpdateEnrolled(\'' + esc(yg) + '\',' + i + ',parseInt(this.value)||0)"/></td>' +
