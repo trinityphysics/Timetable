@@ -266,7 +266,7 @@
   </style>
 </head>
 <body>
-<header>
+<header onclick="showMode('landing')" style="cursor:pointer" title="Return to main menu">
   <span>🗓️</span>
   <h1>Timetable Scheduler</h1>
   <div id="user-badge" class="hidden" style="margin-left:auto;display:flex;align-items:center;gap:.75rem">
@@ -653,12 +653,17 @@
     <div class="step-divider"></div>
     <div class="step-item" id="dist-ind-2" onclick="showDistStep(2)">
       <div class="step-num" id="dist-sn-2">2</div>
-      <div class="step-label">Distribution</div>
+      <div class="step-label">Capacity</div>
     </div>
     <div class="step-divider"></div>
     <div class="step-item" id="dist-ind-3" onclick="showDistStep(3)">
       <div class="step-num" id="dist-sn-3">3</div>
-      <div class="step-label">Summary</div>
+      <div class="step-label">Distribution</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step-item" id="dist-ind-4" onclick="showDistStep(4)">
+      <div class="step-num" id="dist-sn-4">4</div>
+      <div class="step-label">Format</div>
     </div>
   </div>
 
@@ -666,15 +671,23 @@
   <div class="card" id="dist-step-1">
     <h2>Distribution Planner — Step 1: Settings</h2>
     <p class="step-desc">
-      Set the maximum class size used to suggest how many parallel classes are needed for each subject.
+      Set the default maximum class size and timetable structure. These are used as defaults throughout the planner.
       Select the year groups you want to plan for — each year group has its own independent set of columns
       (e.g. Column E in S3 is completely separate from Column E in S4 or S5).
     </p>
     <div class="settings-row">
       <div class="field-group">
-        <label>Max Class Size</label>
+        <label>Default Max Class Size</label>
         <input type="number" id="dist-max-size" min="1" max="100" value="30" style="width:80px"
-               title="Maximum number of students per class — used to calculate the suggested number of classes" />
+               title="Default maximum number of students per class — used to calculate suggested class counts unless overridden per subject" />
+      </div>
+      <div class="field-group">
+        <label>Days per Week</label>
+        <input type="number" id="dist-days" min="1" max="7" value="5" style="width:70px" />
+      </div>
+      <div class="field-group">
+        <label>Periods per Day</label>
+        <input type="number" id="dist-periods" min="1" max="20" value="6" style="width:70px" />
       </div>
     </div>
     <div class="form-section">
@@ -683,36 +696,54 @@
     </div>
     <div class="step-nav">
       <button class="btn-prev" onclick="showMode('landing')">← Back to Menu</button>
-      <button class="btn-next" onclick="showDistStep(2)" style="margin-left:auto">Next: Distribution ▶</button>
+      <button class="btn-next" onclick="showDistStep(2)" style="margin-left:auto">Next: Capacity ▶</button>
     </div>
   </div>
 
-  <!-- Dist Step 2: Distribution table -->
+  <!-- Dist Step 2: Teacher/Subject Capacity -->
   <div class="card hidden" id="dist-step-2">
-    <h2>Distribution Planner — Step 2: Subject Distribution</h2>
+    <h2>Distribution Planner — Step 2: Teacher &amp; Subject Capacity</h2>
+    <p class="step-desc">
+      For each subject offered in the school, specify how many teachers are available to teach it and which
+      periods it can run. This information is used to flag capacity issues in Step 3:
+      if more parallel classes are needed than there are teachers available, the subject will need to be split
+      across multiple column slots. A teacher who can teach multiple subjects can be used in different columns.
+    </p>
+    <div id="dist-cap-container"></div>
+    <button class="btn-add-item" onclick="distAddSubjectCap()" style="margin-top:.5rem">+ Add Subject Capacity</button>
+    <div class="step-nav">
+      <button class="btn-prev" onclick="showDistStep(1)">← Back</button>
+      <button class="btn-next" onclick="showDistStep(3)" style="margin-left:auto">Next: Distribution ▶</button>
+    </div>
+  </div>
+
+  <!-- Dist Step 3: Distribution table -->
+  <div class="card hidden" id="dist-step-3">
+    <h2>Distribution Planner — Step 3: Subject Distribution</h2>
     <p class="step-desc">
       For each year group, enter every subject and level being offered along with the number of students
       who have chosen it. The <strong>Suggested</strong> column shows the minimum number of parallel classes
-      needed based on your max class size. You can override this in the <strong>Classes</strong> column.
-      <br>Optionally assign a column letter and the time slots when that column runs for that year group.
+      needed based on the max class size (override per subject using the <strong>Max Size</strong> column).
+      You can override the class count in the <strong>Classes</strong> column.
+      <br>Optionally assign a column letter and select the time slots when that column runs for that year group.
       Column letters are independent per year group — Column E in S3 is not the same as Column E in S4.
     </p>
-    <div class="dist-info">Max class size: <strong id="dist-max-size-display">30</strong> &mdash; <span id="dist-yg-count-display">0 year group(s) selected</span></div>
+    <div class="dist-info">Default max class size: <strong id="dist-max-size-display">30</strong> &mdash; <span id="dist-yg-count-display">0 year group(s) selected</span></div>
     <div class="dist-yg-tabs" id="dist-yg-tabs"></div>
     <div id="dist-table-container"></div>
     <div class="step-nav">
-      <button class="btn-prev" onclick="showDistStep(1)">← Back</button>
-      <button class="btn-next" onclick="showDistStep(3)" style="margin-left:auto">Next: Summary ▶</button>
+      <button class="btn-prev" onclick="showDistStep(2)">← Back</button>
+      <button class="btn-next" onclick="showDistStep(4)" style="margin-left:auto">Next: Format ▶</button>
     </div>
   </div>
 
-  <!-- Dist Step 3: Summary -->
-  <div class="card hidden" id="dist-step-3">
-    <h2>Distribution Planner — Step 3: Summary</h2>
-    <p class="step-desc">Full overview of the planned subject distribution across all year groups. Save or print for reference when setting up the timetable.</p>
+  <!-- Dist Step 4: Timetable Format -->
+  <div class="card hidden" id="dist-step-4">
+    <h2>Distribution Planner — Step 4: Timetable Format</h2>
+    <p class="step-desc">Full overview of the planned subject distribution and timetable column layout across all year groups. No teacher names are required here — this shows the subject/column/period structure only. Save or print for reference when setting up the timetable.</p>
     <div id="dist-summary"></div>
     <div class="step-nav">
-      <button class="btn-prev" onclick="showDistStep(2)">← Back</button>
+      <button class="btn-prev" onclick="showDistStep(3)">← Back</button>
       <div style="display:flex;gap:.5rem;margin-left:auto">
         <button class="btn-action" onclick="openSaveTimetableDialog('distribution')">💾 Save</button>
         <button class="btn-reset no-print" onclick="window.print()">🖨️ Print</button>
@@ -1379,6 +1410,10 @@ function loadSavedTimetable(idx, filterMode) {
     showMode('rooms');
   } else if(sv.mode === 'distribution') {
     _distMaxClassSize = sv.data.maxClassSize || 30;
+    _distDays         = sv.data.days         || 5;
+    _distPeriods      = sv.data.periods      || 6;
+    _distSubjectCap   = sv.data.subjectCap   || [];
+    _distSubjectCapNextId = sv.data.subjectCapNextId || 0;
     _distSelectedYGs  = sv.data.selectedYGs  || ['S3','S4','S5','S6'];
     _distEntries      = sv.data.entries      || {};
     _distNextId       = sv.data.nextId       || 0;
@@ -1407,7 +1442,7 @@ function confirmSaveTimetable() {
   } else if(_pendingSaveMode === 'rooms') {
     data = { homeRooms: _roomsHomeRooms, rules: _roomsRules, grid: _roomsGrid, bge: _roomsBGE };
   } else if(_pendingSaveMode === 'distribution') {
-    data = { maxClassSize: _distMaxClassSize, selectedYGs: _distSelectedYGs, entries: _distEntries, nextId: _distNextId };
+    data = { maxClassSize: _distMaxClassSize, days: _distDays, periods: _distPeriods, subjectCap: _distSubjectCap, subjectCapNextId: _distSubjectCapNextId, selectedYGs: _distSelectedYGs, entries: _distEntries, nextId: _distNextId };
   }
   saveTimetable(name, _pendingSaveMode, data);
   document.getElementById('save-dialog').classList.add('hidden');
@@ -1647,6 +1682,11 @@ function bgeRenderClasses() {
       '<div class="field-group"><label>Letter</label>'+
       '<select id="bge-cls-sfx-'+i+'" onchange="_bgeClasses['+i+'].suffix=this.value;bgeUpdateClassName('+i+')">'+suffixOpts+'</select></div>'+
       '<div class="field-group"><label>Code</label><span class="code-badge" style="display:inline-flex;align-items:center;padding:.3rem .5rem;font-size:.85rem">'+esc(cn)+'</span></div>'+
+      '<div class="field-group"><label>Copy&nbsp;×</label>'+
+      '<div style="display:flex;gap:.25rem;align-items:center">'+
+      '<input type="number" id="bge-copy-n-'+i+'" min="1" max="20" value="1" style="width:52px;padding:.28rem .35rem;border:1px solid #cbd5e0;border-radius:4px;font-size:.78rem" title="Number of copies to create"/>'+
+      '<button class="btn-add-slot" onclick="bgeCopyClass('+i+')" title="Copy this class N times with same periods — change the Group/Letter dropdowns for each copy">Copy</button>'+
+      '</div></div>'+
       '<button class="btn-delete" style="margin-left:auto" onclick="_bgeClasses.splice('+i+',1);bgeRenderClasses()">✕</button>'+
       '</div>'+
       periodHtml;
@@ -1668,6 +1708,23 @@ function bgePeriodToggle(i, day, period) {
     cls.period_slots.sort((a,b)=>a.day!==b.day?a.day-b.day:a.period-b.period);
   }
   cls.periods_per_week = cls.period_slots.length;
+  bgeRenderClasses();
+}
+
+function bgeCopyClass(i) {
+  const nEl = document.getElementById('bge-copy-n-'+i);
+  const n = Math.max(1, Math.min(20, parseInt((nEl && nEl.value) || '1') || 1));
+  const src = _bgeClasses[i];
+  for (let k = 0; k < n; k++) {
+    _bgeClasses.push({
+      id: _bgeNextId++,
+      prefix: src.prefix || '1M',
+      suffix: src.suffix || 'a',
+      name: bgeClassName(src),
+      period_slots: (src.period_slots || []).map(ps => ({day: ps.day, period: ps.period})),
+      periods_per_week: src.periods_per_week || 0,
+    });
+  }
   bgeRenderClasses();
 }
 
@@ -2041,16 +2098,22 @@ function renderRoomsFinalGrid() {
 // ── Distribution Planner State ──
 const DIST_ALL_YG = ['S1','S2','S3','S4','S5','S6'];
 let _distMaxClassSize = 30;
+let _distDays         = 5;
+let _distPeriods      = 6;
 let _distSelectedYGs  = ['S3','S4','S5','S6'];
-let _distEntries      = {};  // { yg: [{id,subject,level,enrolled,sections,column,periods_per_week,slots},...] }
+let _distEntries      = {};  // { yg: [{id,subject,level,enrolled,max_size,sections,column,periods_per_week,slots},...] }
 let _distNextId       = 0;
 let _distActiveYG     = 'S4';
+let _distSubjectCap   = [];  // [{id,subject,num_teachers,slots:[{day,period}]}]
+let _distSubjectCapNextId = 0;
 
 // ── Distribution Planner Navigation ──
 function showDistStep(n) {
   // Persist settings before moving forward
   if (n >= 2) {
     _distMaxClassSize = Math.max(1, parseInt(document.getElementById('dist-max-size').value) || 30);
+    _distDays    = Math.max(1, parseInt(document.getElementById('dist-days').value) || 5);
+    _distPeriods = Math.max(1, parseInt(document.getElementById('dist-periods').value) || 6);
     _distSelectedYGs = DIST_ALL_YG.filter(yg => {
       const chk = document.getElementById('dist-yg-chk-' + yg);
       return chk && chk.checked;
@@ -2062,7 +2125,7 @@ function showDistStep(n) {
       _distActiveYG = _distSelectedYGs[0];
     }
   }
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 4; i++) {
     const panel = document.getElementById('dist-step-' + i);
     const ind   = document.getElementById('dist-ind-' + i);
     if (!ind) continue;
@@ -2070,8 +2133,9 @@ function showDistStep(n) {
     else { if (panel) panel.classList.add('hidden'); ind.classList.remove('active'); if (i < n) ind.classList.add('done'); else ind.classList.remove('done'); }
   }
   if (n === 1) distRenderSettings();
-  if (n === 2) { distUpdateInfoBar(); distRenderTabs(); distRenderTable(_distActiveYG); }
-  if (n === 3) distRenderSummary();
+  if (n === 2) distRenderCapacity();
+  if (n === 3) { distUpdateInfoBar(); distRenderTabs(); distRenderTable(_distActiveYG); }
+  if (n === 4) distRenderFormat();
 }
 
 // ── Distribution Step 1: Settings ──
@@ -2089,12 +2153,90 @@ function distRenderSettings() {
     c.appendChild(label);
   });
   document.getElementById('dist-max-size').value = _distMaxClassSize;
+  document.getElementById('dist-days').value    = _distDays;
+  document.getElementById('dist-periods').value = _distPeriods;
 }
 
-// ── Distribution Step 2: Table ──
-function distSuggestedSections(enrolled) {
+// ── Distribution Step 2: Teacher/Subject Capacity ──
+function distRenderCapacity() {
+  const container = document.getElementById('dist-cap-container');
+  if (!container) return;
+  if (_distSubjectCap.length === 0) {
+    container.innerHTML = '<p style="font-size:.82rem;color:#a0aec0;font-style:italic;margin-bottom:.5rem">No subjects configured yet — click &ldquo;+ Add Subject Capacity&rdquo; below to configure teacher numbers and available periods per subject.</p>';
+    return;
+  }
+  let html = '<div style="overflow-x:auto"><table class="dist-table">';
+  html += '<thead><tr>' +
+    '<th>Subject</th>' +
+    '<th title="Number of teachers who can teach this subject">Teachers Available</th>' +
+    '<th title="Which periods this subject is allowed to run — select using the period buttons">Available Periods</th>' +
+    '<th title="Other subjects these teachers can also teach (comma-separated names)">Also Teaches</th>' +
+    '<th></th>' +
+    '</tr></thead><tbody>';
+
+  _distSubjectCap.forEach((cap, i) => {
+    let toggleHtml = '<div class="period-selector">';
+    for (let d = 1; d <= _distDays; d++) {
+      toggleHtml += '<div class="period-toggle-row"><span class="period-toggle-day-label">' + esc(DAY_NAMES[d-1] || 'D'+d) + '</span>';
+      for (let p = 1; p <= _distPeriods; p++) {
+        const isActive = (cap.slots || []).some(sl => sl.day === d && sl.period === p);
+        toggleHtml += '<button class="period-toggle' + (isActive ? ' active' : '') + '" ' +
+          'onclick="distCapSlotToggle(' + i + ',' + d + ',' + p + ')" ' +
+          'title="' + esc((DAY_NAMES[d-1]||'D'+d)) + ' P' + p + '">P' + p + '</button>';
+      }
+      toggleHtml += '</div>';
+    }
+    toggleHtml += '</div>';
+
+    html += '<tr>' +
+      '<td><select onchange="_distSubjectCap[' + i + '].subject=this.value">' +
+        SUBJECT_OPTIONS.map(v => '<option value="' + esc(v) + '"' + (cap.subject === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
+      '</select></td>' +
+      '<td><input type="number" min="0" max="50" value="' + (cap.num_teachers || 0) + '" style="width:68px" ' +
+        'title="Number of teachers available for this subject" ' +
+        'onchange="_distSubjectCap[' + i + '].num_teachers=parseInt(this.value)||0"/></td>' +
+      '<td>' + toggleHtml + '</td>' +
+      '<td><input type="text" value="' + esc(cap.also_teaches || '') + '" style="min-width:160px" ' +
+        'placeholder="e.g. Chemistry, Biology" ' +
+        'title="Comma-separated list of other subjects these teachers can also teach" ' +
+        'onchange="_distSubjectCap[' + i + '].also_teaches=this.value"/></td>' +
+      '<td><button class="btn-delete" onclick="distRemoveSubjectCap(' + i + ')" title="Remove">✕</button></td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function distAddSubjectCap() {
+  _distSubjectCap.push({ id: _distSubjectCapNextId++, subject: SUBJECT_OPTIONS[0], num_teachers: 0, slots: [], also_teaches: '' });
+  distRenderCapacity();
+}
+
+function distRemoveSubjectCap(i) {
+  _distSubjectCap.splice(i, 1);
+  distRenderCapacity();
+}
+
+function distCapSlotToggle(i, day, period) {
+  if (!_distSubjectCap[i]) return;
+  const cap = _distSubjectCap[i];
+  if (!cap.slots) cap.slots = [];
+  const pos = cap.slots.findIndex(sl => sl.day === day && sl.period === period);
+  if (pos >= 0) {
+    cap.slots.splice(pos, 1);
+  } else {
+    cap.slots.push({ day, period });
+    cap.slots.sort((a, b) => a.day !== b.day ? a.day - b.day : a.period - b.period);
+  }
+  distRenderCapacity();
+}
+
+// ── Distribution Step 3: Table ──
+function distSuggestedSections(enrolled, entryMaxSize) {
+  const maxSize = (entryMaxSize && entryMaxSize > 0) ? entryMaxSize : _distMaxClassSize;
   if (!enrolled || enrolled <= 0) return 1;
-  return Math.ceil(enrolled / _distMaxClassSize);
+  return Math.ceil(enrolled / maxSize);
 }
 
 function distUpdateInfoBar() {
@@ -2117,60 +2259,90 @@ function distRenderTabs() {
   });
 }
 
+function distGetCap(subject) {
+  return _distSubjectCap.find(c => c.subject === subject) || null;
+}
+
 function distRenderTable(yg) {
   const container = document.getElementById('dist-table-container');
   if (!_distEntries[yg]) _distEntries[yg] = [];
   const entries = _distEntries[yg];
 
-  const subjectOpts = SUBJECT_OPTIONS.map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
-  const levelOpts   = LEVEL_OPTIONS.map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
-  const colOpts     = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(v =>
+  const colOpts = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(v =>
     '<option value="' + v + '">' + esc(v || '—') + '</option>').join('');
 
   let html = '<div style="overflow-x:auto"><table class="dist-table">';
   html += '<thead><tr>' +
-    '<th>Subject</th><th>Level</th><th>Enrolled</th>' +
-    '<th title="Minimum parallel classes needed: ⌈Enrolled ÷ Max Class Size⌉">Suggested</th>' +
+    '<th>Subject</th><th>Level</th>' +
+    '<th title="Per-subject max class size — overrides the global default (leave blank to use global default)">Max Size</th>' +
+    '<th>Enrolled</th>' +
+    '<th title="Minimum parallel classes needed: ⌈Enrolled ÷ Max Size⌉">Suggested</th>' +
     '<th title="Override the suggested number of classes">Classes</th>' +
     '<th title="Column letter for this year group (independent of other year groups)">Column (' + esc(yg) + ')</th>' +
     '<th title="How many periods per week this class meets">Per./Wk</th>' +
-    '<th title="Optional: time slots when this column/level runs for ' + esc(yg) + '">Timing Slots</th>' +
+    '<th title="Select time slots when this column runs for ' + esc(yg) + '">Timing Slots</th>' +
     '<th></th>' +
     '</tr></thead><tbody>';
 
   if (entries.length === 0) {
-    html += '<tr><td colspan="9" style="text-align:center;color:#a0aec0;padding:.75rem;font-style:italic">No subjects yet — click &ldquo;+ Add Subject&rdquo; below.</td></tr>';
+    html += '<tr><td colspan="10" style="text-align:center;color:#a0aec0;padding:.75rem;font-style:italic">No subjects yet — click &ldquo;+ Add Subject&rdquo; below.</td></tr>';
   }
 
   entries.forEach((e, i) => {
-    const suggested = distSuggestedSections(e.enrolled);
+    const entryMaxSize = (e.max_size && e.max_size > 0) ? e.max_size : null;
+    const suggested = distSuggestedSections(e.enrolled, entryMaxSize);
     const sections  = e.sections != null ? e.sections : suggested;
 
-    const slotsHtml = (e.slots || []).map((sl, j) =>
-      '<span class="chip">D' + sl.day + ' P' + sl.period +
-      '<button class="chip-btn" onclick="distRemoveSlot(\'' + esc(yg) + '\',' + i + ',' + j + ')">×</button></span>'
-    ).join('');
-    const slotAdd = '<span class="slot-add-row">D<input type="number" min="1" id="dist-sd-' + i +
-      '" style="width:36px">P<input type="number" min="1" id="dist-sp-' + i +
-      '" style="width:36px"><button class="btn-add-slot" onclick="distAddSlot(\'' + esc(yg) + '\',' + i + ')">+</button></span>';
+    // Capacity warning
+    const cap = distGetCap(e.subject);
+    let capWarning = '';
+    if (cap && cap.num_teachers > 0 && sections > cap.num_teachers) {
+      const neededCols = Math.ceil(sections / cap.num_teachers);
+      capWarning = '<span title="⚠ ' + sections + ' classes needed but only ' + cap.num_teachers + ' teacher(s) available — split across ' + neededCols + ' column slot(s)" ' +
+        'style="color:#c05621;background:#feebc8;border:1px solid #f6ad55;border-radius:3px;font-size:.7rem;font-weight:700;padding:.1rem .35rem;display:inline-block;margin-top:.15rem;cursor:help">' +
+        '⚠ Needs ' + neededCols + ' slots</span>';
+    }
+
+    // Period toggle buttons for timing slots
+    let toggleHtml = '<div class="period-selector">';
+    for (let d = 1; d <= _distDays; d++) {
+      toggleHtml += '<div class="period-toggle-row"><span class="period-toggle-day-label">' + esc(DAY_NAMES[d-1] || 'D'+d) + '</span>';
+      for (let p = 1; p <= _distPeriods; p++) {
+        const isActive = (e.slots || []).some(sl => sl.day === d && sl.period === p);
+        toggleHtml += '<button class="period-toggle' + (isActive ? ' active' : '') + '" ' +
+          'onclick="distSlotToggle(\'' + esc(yg) + '\',' + i + ',' + d + ',' + p + ')" ' +
+          'title="' + esc((DAY_NAMES[d-1]||'D'+d)) + ' P' + p + '">P' + p + '</button>';
+      }
+      toggleHtml += '</div>';
+    }
+    toggleHtml += '</div>';
 
     html += '<tr>' +
-      '<td><select onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'subject\',this.value)">' +
+      '<td><select onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'subject\',this.value);distRenderTable(\'' + esc(yg) + '\')">' +
         '<option value="' + esc(e.subject) + '" selected>' + esc(e.subject) + '</option>' +
         SUBJECT_OPTIONS.filter(v => v !== e.subject).map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('') +
       '</select></td>' +
       '<td><select onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'level\',this.value)">' +
         LEVEL_OPTIONS.map(v => '<option value="' + esc(v) + '"' + (e.level === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
       '</select></td>' +
+      '<td><input type="number" min="1" max="100" value="' + (entryMaxSize || '') + '" style="width:64px" ' +
+        'placeholder="' + _distMaxClassSize + '" ' +
+        'title="Override max class size for this subject (blank = use global default of ' + _distMaxClassSize + ')" ' +
+        'onchange="distUpdateMaxSize(\'' + esc(yg) + '\',' + i + ',this.value)"/></td>' +
       '<td><input type="number" min="0" value="' + (e.enrolled || 0) + '" style="width:72px" ' +
         'onchange="distUpdateEnrolled(\'' + esc(yg) + '\',' + i + ',parseInt(this.value)||0)"/></td>' +
-      '<td style="text-align:center"><span class="dist-suggested" title="⌈' + (e.enrolled||0) + ' ÷ ' + _distMaxClassSize + '⌉ = ' + suggested + '">' + suggested + '</span></td>' +
-      '<td><input type="number" min="1" value="' + sections + '" style="width:56px" ' +
-        'onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'sections\',parseInt(this.value)||1)"/></td>' +
+      '<td style="text-align:center">' +
+        '<span class="dist-suggested" title="⌈' + (e.enrolled||0) + ' ÷ ' + (entryMaxSize || _distMaxClassSize) + '⌉ = ' + suggested + '">' + suggested + '</span>' +
+      '</td>' +
+      '<td><div style="display:flex;flex-direction:column;align-items:flex-start;gap:.1rem">' +
+        '<input type="number" min="1" value="' + sections + '" style="width:56px" ' +
+          'onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'sections\',parseInt(this.value)||1);distRenderTable(\'' + esc(yg) + '\')"/>' +
+        capWarning +
+      '</div></td>' +
       '<td><select onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'column\',this.value)">' + colOpts + '</select></td>' +
       '<td><input type="number" min="1" max="20" value="' + (e.periods_per_week || 1) + '" style="width:48px" ' +
         'onchange="distUpdateEntry(\'' + esc(yg) + '\',' + i + ',\'periods_per_week\',parseInt(this.value)||1)"/></td>' +
-      '<td><div class="slot-chips">' + slotsHtml + slotAdd + '</div></td>' +
+      '<td>' + toggleHtml + '</td>' +
       '<td><button class="btn-delete" onclick="distRemoveEntry(\'' + esc(yg) + '\',' + i + ')" title="Remove">✕</button></td>' +
       '</tr>';
   });
@@ -2178,19 +2350,18 @@ function distRenderTable(yg) {
   html += '</tbody></table></div>';
   html += '<button class="btn-add-item" onclick="distAddEntry(\'' + esc(yg) + '\')" style="margin-top:.5rem">+ Add Subject</button>';
 
-  // After rendering, set column selects to the stored value (can't be done inline with innerHTML)
   container.innerHTML = html;
 
-  // Restore column select values (since colOpts doesn't know the selected entry's column at generation time)
+  // Restore column select values
   entries.forEach((e, i) => {
-    const colEl = container.querySelector('table tbody tr:nth-child(' + (i + 1) + ') td:nth-child(6) select');
+    const colEl = container.querySelector('table tbody tr:nth-child(' + (i + 1) + ') td:nth-child(7) select');
     if (colEl) colEl.value = e.column || '';
   });
 }
 
 function distAddEntry(yg) {
   if (!_distEntries[yg]) _distEntries[yg] = [];
-  _distEntries[yg].push({ id: _distNextId++, subject: SUBJECT_OPTIONS[0], level: LEVEL_OPTIONS[0], enrolled: 0, sections: null, column: '', periods_per_week: 1, slots: [] });
+  _distEntries[yg].push({ id: _distNextId++, subject: SUBJECT_OPTIONS[0], level: LEVEL_OPTIONS[0], enrolled: 0, max_size: null, sections: null, column: '', periods_per_week: 1, slots: [] });
   distRenderTable(yg);
 }
 
@@ -2205,6 +2376,13 @@ function distUpdateEntry(yg, idx, field, val) {
   _distEntries[yg][idx][field] = val;
 }
 
+function distUpdateMaxSize(yg, idx, val) {
+  if (!_distEntries[yg] || !_distEntries[yg][idx]) return;
+  const n = parseInt(val);
+  _distEntries[yg][idx].max_size = (n && n > 0) ? n : null;
+  distRenderTable(yg);
+}
+
 // Enrolled change requires re-render so the Suggested badge updates
 function distUpdateEnrolled(yg, idx, val) {
   if (!_distEntries[yg] || !_distEntries[yg][idx]) return;
@@ -2212,23 +2390,22 @@ function distUpdateEnrolled(yg, idx, val) {
   distRenderTable(yg);
 }
 
-function distAddSlot(yg, idx) {
-  const d = parseInt(document.getElementById('dist-sd-' + idx).value);
-  const p = parseInt(document.getElementById('dist-sp-' + idx).value);
-  if (d >= 1 && p >= 1) {
-    if (!_distEntries[yg][idx].slots) _distEntries[yg][idx].slots = [];
-    _distEntries[yg][idx].slots.push({ day: d, period: p });
-    distRenderTable(yg);
+function distSlotToggle(yg, idx, day, period) {
+  if (!_distEntries[yg] || !_distEntries[yg][idx]) return;
+  const entry = _distEntries[yg][idx];
+  if (!entry.slots) entry.slots = [];
+  const pos = entry.slots.findIndex(sl => sl.day === day && sl.period === period);
+  if (pos >= 0) {
+    entry.slots.splice(pos, 1);
+  } else {
+    entry.slots.push({ day, period });
+    entry.slots.sort((a, b) => a.day !== b.day ? a.day - b.day : a.period - b.period);
   }
-}
-
-function distRemoveSlot(yg, idx, slotIdx) {
-  _distEntries[yg][idx].slots.splice(slotIdx, 1);
   distRenderTable(yg);
 }
 
-// ── Distribution Step 3: Summary ──
-function distRenderSummary() {
+// ── Distribution Step 4: Timetable Format ──
+function distRenderFormat() {
   const container = document.getElementById('dist-summary');
   if (_distSelectedYGs.length === 0) {
     container.innerHTML = '<p style="color:#a0aec0">No year groups selected. Go back to Step 1.</p>';
@@ -2236,6 +2413,7 @@ function distRenderSummary() {
   }
   let html = '';
   let grandTotalEnrolled = 0, grandTotalClasses = 0;
+
   _distSelectedYGs.forEach(yg => {
     const entries = _distEntries[yg] || [];
     html += '<div class="dist-summary-section">';
@@ -2243,26 +2421,38 @@ function distRenderSummary() {
     if (entries.length === 0) {
       html += '<p style="font-size:.82rem;color:#a0aec0;font-style:italic">No subjects entered for ' + esc(yg) + '.</p>';
     } else {
+      // ── Summary table ──
       html += '<div style="overflow-x:auto"><table class="dist-summary-table"><thead><tr>' +
-        '<th>Subject</th><th>Level</th><th>Enrolled</th><th>Suggested</th>' +
+        '<th>Subject</th><th>Level</th><th>Max Size</th><th>Enrolled</th><th>Suggested</th>' +
         '<th>Classes</th><th>Column (' + esc(yg) + ')</th><th>Per./Wk</th><th>Timing Slots</th>' +
         '</tr></thead><tbody>';
       let ygEnrolled = 0, ygClasses = 0;
       entries.forEach(e => {
-        const suggested = distSuggestedSections(e.enrolled);
+        const entryMaxSize = (e.max_size && e.max_size > 0) ? e.max_size : null;
+        const suggested = distSuggestedSections(e.enrolled, entryMaxSize);
         const sections  = e.sections != null ? e.sections : suggested;
         const enrolled  = parseInt(e.enrolled) || 0;
-        const slots     = (e.slots || []).map(sl => 'D' + sl.day + ' P' + sl.period).join(', ');
+        const slots     = (e.slots || []).map(sl => (DAY_NAMES[sl.day-1]||'D'+sl.day) + ' P' + sl.period).join(', ');
         ygEnrolled += enrolled;
         ygClasses  += sections;
         grandTotalEnrolled += enrolled;
         grandTotalClasses  += sections;
+
+        // Capacity check
+        const cap = distGetCap(e.subject);
+        let capNote = '';
+        if (cap && cap.num_teachers > 0 && sections > cap.num_teachers) {
+          const neededCols = Math.ceil(sections / cap.num_teachers);
+          capNote = ' <span style="color:#c05621;font-size:.72rem;font-weight:700">⚠ ' + neededCols + ' slots needed</span>';
+        }
+
         html += '<tr>' +
           '<td>' + esc(e.subject) + '</td>' +
           '<td>' + esc(e.level) + '</td>' +
+          '<td style="text-align:center">' + (entryMaxSize ? entryMaxSize : '<em style="color:#a0aec0">'+_distMaxClassSize+'</em>') + '</td>' +
           '<td style="text-align:right">' + enrolled + '</td>' +
           '<td style="text-align:center"><span class="dist-suggested">' + suggested + '</span></td>' +
-          '<td style="text-align:center;font-weight:700">' + sections + '</td>' +
+          '<td style="text-align:center;font-weight:700">' + sections + capNote + '</td>' +
           '<td style="text-align:center">' + esc(e.column || '—') + '</td>' +
           '<td style="text-align:center">' + esc(String(e.periods_per_week || 1)) + '</td>' +
           '<td style="font-size:.75rem">' + esc(slots || '—') + '</td>' +
@@ -2273,9 +2463,39 @@ function distRenderSummary() {
         '<span>' + esc(yg) + ' total enrolled: <strong>' + ygEnrolled + '</strong></span>' +
         '<span>' + esc(yg) + ' total classes: <strong>' + ygClasses + '</strong></span>' +
         '</div>';
+
+      // ── Timetable Format Grid ──
+      // Collect all (day, period) slots and column letters used by entries that have both
+      const colsUsed = [...new Set(entries.filter(e => e.column).map(e => e.column))].sort();
+      const slotsUsed = [];
+      entries.forEach(e => { (e.slots||[]).forEach(sl => { if(!slotsUsed.some(s=>s.day===sl.day&&s.period===sl.period)) slotsUsed.push({day:sl.day,period:sl.period}); }); });
+      slotsUsed.sort((a,b)=>a.day!==b.day?a.day-b.day:a.period-b.period);
+
+      if (colsUsed.length > 0 && slotsUsed.length > 0) {
+        html += '<p style="font-size:.8rem;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.06em;margin:.75rem 0 .35rem">Timetable Format — ' + esc(yg) + ' (column × period)</p>';
+        html += '<div style="overflow-x:auto"><table class="dist-summary-table"><thead><tr><th>Period</th>';
+        colsUsed.forEach(col => { html += '<th>Col ' + esc(col) + '</th>'; });
+        html += '</tr></thead><tbody>';
+        slotsUsed.forEach(sl => {
+          html += '<tr><td style="font-weight:700;white-space:nowrap">' + esc((DAY_NAMES[sl.day-1]||'D'+sl.day) + ' P' + sl.period) + '</td>';
+          colsUsed.forEach(col => {
+            const matching = entries.filter(e => e.column === col && (e.slots||[]).some(s=>s.day===sl.day&&s.period===sl.period));
+            if (matching.length > 0) {
+              html += '<td style="background:#f0fff4;border:1px solid #c6f6d5">' +
+                matching.map(e => '<span style="display:block;font-size:.75rem;font-weight:700;color:#276749">' + esc(e.subject) + '</span><span style="font-size:.68rem;color:#4a5568">' + esc(e.level) + '</span>').join('') +
+                '</td>';
+            } else {
+              html += '<td style="color:#e2e8f0;text-align:center;font-size:.75rem">—</td>';
+            }
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
     }
     html += '</div>';
   });
+
   if (_distSelectedYGs.length > 1) {
     html += '<div style="margin-top:.75rem;padding:.75rem 1rem;background:#f0fff4;border-left:4px solid #38a169;border-radius:4px;font-size:.85rem;color:#276749">' +
       '<strong>Grand Total — Enrolled: ' + grandTotalEnrolled + ' &nbsp;|&nbsp; Classes: ' + grandTotalClasses + '</strong></div>';
