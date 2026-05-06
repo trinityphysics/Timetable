@@ -797,7 +797,7 @@
 
 <script>
 const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const SUBJECT_OPTIONS = ["Physics","Electronics","Chemistry","Biology","Lab Skills","Beekeeping"];
+const SUBJECT_OPTIONS = ["Physics","Electronics","Chemistry","Biology","Science","Lab Skills","Beekeeping"];
 const YEAR_GROUP_OPTIONS = ["S1","S2","S3","S4","S5","S6"];
 const LEVEL_OPTIONS = ["N5","Higher","AH","Other"];
 const COLUMN_OPTIONS = ["A","B","C","D","E","F","G","H"];
@@ -2104,7 +2104,7 @@ let _distSelectedYGs  = ['S3','S4','S5','S6'];
 let _distEntries      = {};  // { yg: [{id,subject,level,enrolled,max_size,sections,column,periods_per_week,slots},...] }
 let _distNextId       = 0;
 let _distActiveYG     = 'S4';
-let _distSubjectCap   = [];  // [{id,subject,num_teachers,slots:[{day,period}]}]
+let _distSubjectCap   = [];  // [{id,subject,num_teachers,available_periods,also_teaches:[]}]
 let _distSubjectCapNextId = 0;
 
 // ── Distribution Planner Navigation ──
@@ -2169,37 +2169,30 @@ function distRenderCapacity() {
   html += '<thead><tr>' +
     '<th>Subject</th>' +
     '<th title="Number of teachers who can teach this subject">Teachers Available</th>' +
-    '<th title="Which periods this subject is allowed to run — select using the period buttons">Available Periods</th>' +
-    '<th title="Other subjects these teachers can also teach (comma-separated names)">Also Teaches</th>' +
+    '<th title="Total number of available periods per week for this subject">Available Periods</th>' +
+    '<th title="Other subjects these teachers can also teach — select from the list">Also Teaches</th>' +
     '<th></th>' +
     '</tr></thead><tbody>';
 
   _distSubjectCap.forEach((cap, i) => {
-    let toggleHtml = '<div class="period-selector">';
-    for (let d = 1; d <= _distDays; d++) {
-      toggleHtml += '<div class="period-toggle-row"><span class="period-toggle-day-label">' + esc(DAY_NAMES[d-1] || 'D'+d) + '</span>';
-      for (let p = 1; p <= _distPeriods; p++) {
-        const isActive = (cap.slots || []).some(sl => sl.day === d && sl.period === p);
-        toggleHtml += '<button class="period-toggle' + (isActive ? ' active' : '') + '" ' +
-          'onclick="distCapSlotToggle(' + i + ',' + d + ',' + p + ')" ' +
-          'title="' + esc((DAY_NAMES[d-1]||'D'+d)) + ' P' + p + '">P' + p + '</button>';
-      }
-      toggleHtml += '</div>';
-    }
-    toggleHtml += '</div>';
+    const alsoTeachesList = Array.isArray(cap.also_teaches) ? cap.also_teaches : (cap.also_teaches ? cap.also_teaches.split(',').map(s=>s.trim()).filter(Boolean) : []);
+    const otherSubjects = SUBJECT_OPTIONS.filter(v => v !== cap.subject);
 
     html += '<tr>' +
-      '<td><select onchange="_distSubjectCap[' + i + '].subject=this.value">' +
+      '<td><select onchange="_distSubjectCap[' + i + '].subject=this.value;distRenderCapacity()">' +
         SUBJECT_OPTIONS.map(v => '<option value="' + esc(v) + '"' + (cap.subject === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
       '</select></td>' +
       '<td><input type="number" min="0" max="50" value="' + (cap.num_teachers || 0) + '" style="width:68px" ' +
         'title="Number of teachers available for this subject" ' +
         'onchange="_distSubjectCap[' + i + '].num_teachers=parseInt(this.value)||0"/></td>' +
-      '<td>' + toggleHtml + '</td>' +
-      '<td><input type="text" value="' + esc(cap.also_teaches || '') + '" style="min-width:160px" ' +
-        'placeholder="e.g. Chemistry, Biology" ' +
-        'title="Comma-separated list of other subjects these teachers can also teach" ' +
-        'onchange="_distSubjectCap[' + i + '].also_teaches=this.value"/></td>' +
+      '<td><input type="number" min="0" max="100" value="' + (cap.available_periods || 0) + '" style="width:68px" ' +
+        'title="Total available periods per week for this subject" ' +
+        'onchange="_distSubjectCap[' + i + '].available_periods=parseInt(this.value)||0"/></td>' +
+      '<td><select multiple size="' + Math.min(4, otherSubjects.length || 1) + '" style="min-width:160px" ' +
+        'title="Select other subjects these teachers can also teach" ' +
+        'onchange="distCapAlsoTeachesChange(' + i + ',this)">' +
+        otherSubjects.map(v => '<option value="' + esc(v) + '"' + (alsoTeachesList.includes(v) ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
+      '</select></td>' +
       '<td><button class="btn-delete" onclick="distRemoveSubjectCap(' + i + ')" title="Remove">✕</button></td>' +
       '</tr>';
   });
@@ -2209,7 +2202,7 @@ function distRenderCapacity() {
 }
 
 function distAddSubjectCap() {
-  _distSubjectCap.push({ id: _distSubjectCapNextId++, subject: SUBJECT_OPTIONS[0], num_teachers: 0, slots: [], also_teaches: '' });
+  _distSubjectCap.push({ id: _distSubjectCapNextId++, subject: SUBJECT_OPTIONS[0], num_teachers: 0, available_periods: 0, also_teaches: [] });
   distRenderCapacity();
 }
 
@@ -2218,18 +2211,9 @@ function distRemoveSubjectCap(i) {
   distRenderCapacity();
 }
 
-function distCapSlotToggle(i, day, period) {
+function distCapAlsoTeachesChange(i, selectEl) {
   if (!_distSubjectCap[i]) return;
-  const cap = _distSubjectCap[i];
-  if (!cap.slots) cap.slots = [];
-  const pos = cap.slots.findIndex(sl => sl.day === day && sl.period === period);
-  if (pos >= 0) {
-    cap.slots.splice(pos, 1);
-  } else {
-    cap.slots.push({ day, period });
-    cap.slots.sort((a, b) => a.day !== b.day ? a.day - b.day : a.period - b.period);
-  }
-  distRenderCapacity();
+  _distSubjectCap[i].also_teaches = Array.from(selectEl.selectedOptions).map(o => o.value);
 }
 
 // ── Distribution Step 3: Table ──
